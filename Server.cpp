@@ -38,16 +38,35 @@ void Server::setupSocket(int port) {
 void Server::run() {
 
     while (true) {
+
         int up = poll(&this->poll_fds[0], poll_fds.size(), -1);
         if (up == -1) {
             std::cerr << "Error" << std::endl;
             continue ;
         }
+
+        std::vector<int> needRemove;
         for (size_t i = 0; i < this->poll_fds.size(); i++) {
             if (this->poll_fds[i].revents & POLLIN) {
                 if (poll_fds[i].fd == this->listen_fd)
                     acceptNclient();
+                else {
+                    bool present = handleClientData(this->poll_fds[i].fd);
+                    if (!present)
+                        needRemove.push_back(poll_fds[i].fd);
+                }
             }
+        }
+        for (size_t j = 0; j < needRemove.size(); j++) {
+            int deadFd = needRemove[j];
+
+            for (size_t x = 0; x < this->poll_fds.size(); x++) {
+                if (this->poll_fds[x].fd == deadFd) {
+                    this->poll_fds.erase(this->poll_fds.begin() + x);
+                    break;
+                }
+            }
+            clients.erase(deadFd);
         }
     }
 }
@@ -66,4 +85,33 @@ void Server::acceptNclient() {
     this->poll_fds.push_back(pfd_client);
     std::cout << "New Client [fd]: " << cl.fd << " Is In..." << std::endl;
     this->clients.insert(std::make_pair(cl.fd, cl));
+}
+
+bool Server::handleClientData(int fd) {
+    char tempo[1024];
+    int bytes = recv(fd, tempo, sizeof(tempo), 0);
+    if (bytes > 0) {
+        clients[fd].bufferBites.append(tmpo, bytes);
+
+        while (true) {
+            size_t pos = clients[fd].bufferBites.find('\n');
+            if (pos == std::string::npos)
+                break ;
+            l
+            std::string wellFormed = clients[fd].bufferBites.substr(0, pos);
+            clients[fd].bufferBites.erase(0, pos + 1);
+
+            if (!wellFormed.empty() && wellFormed[wellFormed.size() - 1] == '\r')
+                wellFormed.erase(wellFormed.size() - 1);
+
+                // TODO 
+        }
+        return true;
+    } else if (bytes == 0) { // client is dead.
+        close(fd);
+        return false;
+    } else { // bytes < 0 might be recv error or poll() already said readable.
+        close(fd);
+        return false;
+    }
 }

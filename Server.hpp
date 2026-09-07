@@ -24,6 +24,7 @@ class Server {
     
         void setupSocket(int port);
         void acceptNclient();
+        bool handleClientData(int fd);
 
     public:
         Server(int port, std::string _password);
