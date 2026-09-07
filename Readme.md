@@ -76,7 +76,36 @@ fcntl(fd, F_SETFL, O_NONBLOCK);
 
 **What changes at the kernel level**: the call no longer sleeps, if the operation can't complete right now, it returns immediately with ``-1`` and sets ``errno`` to ``EAGAIN`` (or ``EWOULDBLOCK``), same thing on most systems -- meaning "nothing to do right now, try again later". If data is available/the socket is ready, it behaves exactly like the blocking version and returns the data/result normally.
 
-**The trap this sets up**: now that every call can return "Nothing happened yet", we need some way to know when to actually call ``recv()``/``accept()``/send()`` instead of just calling them in a loop and checking ``errno == EAGAIN`` -- because that's the literal instant-zero rule ("never use errno to decide control flow after I/O"). Polling in a tight loop like that would also burn 100% CPU for no reason.
+**The trap this sets up**: now that every call can return "Nothing happened yet", we need some way to know when to actually call ``recv()``/``accept()``/``send()`` instead of just calling them in a loop and checking ``errno == EAGAIN`` -- because that's the literal instant-zero rule ("never use errno to decide control flow after I/O"). Polling in a tight loop like that would also burn 100% CPU for no reason.
 
 Thus we never call these blindly, we ask the kernel in advance, for a whole batch of fds at once, "which of these are actually ready right now?" that's exactly what ``poll()`` does, and why it exists as the load-bearing piece of this whole architecture.
 
+## ``poll()`` -- The Core of The Server
+
+**The problem is solves**: we have N fds (1 listening socket + 1 per connected client), all non-blocking. We can't just loop over them calling ``recv()`` on each -- most calls would return ``EAGAIN`` (nothing to read), wasting CPU, and we are not allowed to use ``errno`` for control flow anyway. We need the kernel to tell us, in one shot, which fds actually have something to do.
+
+**The Signature**
+```
+int poll(struct pollfd *fds, nfds_t, int timeout);
+```
+
+* ``fds`` -- an array of ``struct pollfd``, one entry per fd we are watching
+* ``nfds`` -- how many entries are in that array
+* ``timeout`` -- miliseconds to wait before giving up if nothing's ready (``-1`` = block forever until something happens, which is normally whay we want for a server with nothing esle to do meanwhile.)
+* Return Value: number of fds with evernts ready, ``0`` if the timeout expired, ``-1`` on error.
+
+**The ``struct pollfd``:
+
+```
+struct pollfd {
+    int fd; // the file descriptor to watch
+    short events; // what we are asking about (input)
+    short revents; // what actually happned (output, filled by poll())
+};
+```
+
+* ``events`` -- we set this ourselves before calling ``poll()``. Common Flags:
+
+-> ``POLLIN`` -- "tell me if this fd has data ready to read" (for a listening socket, this means a new connection is pending; for a client socket, it means data arrived)
+
+-> ``POLLOUT`` "tell me if this fd is ready to accept a write without blocking" (we only need to watch for this when we actually have queued data to )
