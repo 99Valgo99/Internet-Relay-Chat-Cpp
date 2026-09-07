@@ -61,3 +61,22 @@ This is the call that flips the fd from "just bound" to "actually listening for 
 * Pulls one connection off that backlog queue and gives us a new, seperate fd represeting that one client's socket. The original listening fd keeps listening -- it's never used for actual data transfer.
 * ``addr``/``addrlen`` are optional out-params if we want the client's IP/port. (not required by the subject, but harmless if we want it for logging)
 * returns ``-1`` on error, or (in non-blocking mode) ``-1`` with ``errno == EAGAIN/EWOULDBLOCK`` if no connection is pending -- but we are not allowed to branch on that, we only call ``accept()`` when ``poll()`` already told us the listening fd is readable.
+
+## Blocking vs Non-blocking I/O
+
+**Default behavior (blocking)**: when we call accept(), recv() or send() on a normal socket, if the operation can't complete immediately, the calling thread sleeps until it can. ``accept()`` blocks until a client connects. ``recv()`` blocks until data arrives. ``send()`` blocks if the kernel's send buffer is full.
+
+**Why that's fatal for this project**: we have exactly one thread and one ``poll()`` loop handling every client. If we call a blocking ``recv()`` on client A and client A hasn't sent anything yet, our entire server freezes -- client B,C and D can't be served, the listening socket can't ``accept()`` new connections, nothing happens -- until A finally sends something. That's the forking/threading problem in disguise: the subject bans forking, so blocking calls would single-handedly stall everyone.
+
+**The fix**: ``O_NONBLOCK`` we set this flag on every fd (listening sokcet and every client socket) right after creating it:
+
+```
+fcntl(fd, F_SETFL, O_NONBLOCK);
+```
+
+**What changes at the kernel level**: the call no longer sleeps, if the operation can't complete right now, it returns immediately with ``-1`` and sets ``errno`` to ``EAGAIN`` (or ``EWOULDBLOCK``), same thing on most systems -- meaning "nothing to do right now, try again later". If data is available/the socket is ready, it behaves exactly like the blocking version and returns the data/result normally.
+
+**The trap this sets up**: now that every call can return "Nothing happened yet", we need some way to know when to actually call ``recv()``/``accept()``/send()`` instead of just calling them in a loop and checking ``errno == EAGAIN`` -- because that's the literal instant-zero rule ("never use errno to decide control flow after I/O"). Polling in a tight loop like that would also burn 100% CPU for no reason.
+
+Thus we never call these blindly, we ask the kernel in advance, for a whole batch of fds at once, "which of these are actually ready right now?" that's exactly what ``poll()`` does, and why it exists as the load-bearing piece of this whole architecture.
+
