@@ -3,7 +3,11 @@
 # include <fcntl.h>
 # include <string>
 # include <poll.h>
-# include <loop>
+# include <cstdlib>
+# include <vector>
+# include <cstring>
+# include <netinet/in.h> // sockaddr_in
+# include <arpa/inet.h> // INADDR_ANY/htons
 
 int main(int argc, char **argv) {
     if (argc != 3) {
@@ -47,4 +51,30 @@ int main(int argc, char **argv) {
     pfd.revents = 0;
     std::vector<struct pollfd> poll_fds;
     poll_fds.push_back(pfd);
+
+    while (true) {
+        int up = poll(&poll_fds[0], poll_fds.size(), -1);
+        if (up == -1) {
+            std::cerr << "poll Error" << std::endl;
+            continue ;
+        }
+        for (size_t i = 0; i < poll_fds.size(); i++) {
+            if (poll_fds[i].revents & POLLIN) {
+                if (poll_fds[i].fd == listen_fd) {
+                    int client_fd = accept(listen_fd, NULL, NULL);
+                    if (client_fd == -1) {
+                        std::cerr << "Error" << std::endl;
+                        continue ;
+                    }
+                    fcntl(client_fd, F_SETFL, O_NONBLOCK);
+                    struct pollfd pfd_client;
+                    pfd_client.fd = client_fd;
+                    pfd_client.events = POLLIN;
+                    pfd_client.revents = 0;
+                    poll_fds.push_back(pfd_client);
+                    std::cout << "New Client [fd]: " << client_fd << " Is In..." << std::endl;
+                }
+            }
+        }
+    }
 }
