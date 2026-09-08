@@ -162,3 +162,45 @@ Order between NICK and USER is flexible in real IRC clients (some send NICK firs
 * ``<mode>`` and ``<unused>`` -- accept and discard; no mandatory-scope logic depends on them
 * If a client sends USER after already being fully registered: ``462 ERR_ALREADYREGISTRED`` -- same as re-sending PASS, this ins't a way to update identity later
 ***
+
+### Channel - the New Concept
+
+A ``Channel`` doesn't exist until someone ``JOIN``s it -- there\s no pre-definde list of valid channels, they're created on demand and (in most real IRC servers) destroyed once empty. Each channel needs:
+
+* **A name** (e.g ``#general``) -- channel names in IRC conventionally start with ``#``
+* **A memeber list** -- who's currenlty joined
+* **A topic**
+* **An operator list** -- who has elevated privileges in this channel
+* **Mode state**
+***
+
+### JOIN
+
+**Purpose**: add the sending client to a channel's member list, creating the channel if it doesn't exist yet.
+
+**Format**: ``JOIN <channel>`` (real IRC supports joining multiple channels in one command and channel keys)
+
+#### Server behavior:
+
+* Client must be registered
+* Look up the channel by name, if it doesn't exist, it must be created
+* Add the client's fd to the channel's member list
+* Real IRC sends the joining client (and existing members) some numeric replies confirming the join and listing current members
+
+### PRIVMSG
+
+**Purpose**: send a message either directly to another user (by nickname) or to every member of a channel.
+
+**Format**: ``PRIVMSG <target> :<message>``
+
+**Server behavior** -- two distinct cases based on what ``<target>`` looks like:
+
+1. **Target is nickname** -- look up which fd currently owns that nickname, forward the message directly to just that one client
+2. **Target is a channel name** (starts with ``#``) -- look up the channel, forward the message to every member except the **sender**
+***
+
+### The Broadcast Mechanic
+
+When forwarding a message to multiple members, we are calling ``send()`` on eah of their fds -- but remember, ``send()`` **can partailly write**, and we are not supposed to call ``send()``/``recv()`` outisde a single ``poll()`` loop's control. This is where the ``POLLOUT``/outbox conecpt fundamentals finally becomes unavoidable -- we can't keep deferring it once we have actively broadcasting to multiple clients per command.
+
+***
