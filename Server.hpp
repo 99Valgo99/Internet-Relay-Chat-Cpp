@@ -13,6 +13,7 @@
 # include <arpa/inet.h> // INADDR_ANY/htons
 # include <map>
 # include <unistd.h>
+# include <sstream>
 
 #include "Client.hpp"
 
@@ -26,6 +27,9 @@ class Server {
         void setupSocket(int port);
         void acceptNclient();
         bool handleClientData(int fd);
+        void validatePass(int fd, std::string arg);
+        void validateNick(int fd, std::string arg);
+        void validateUser(int fd, std::string username, std::string realname);
 
     public:
         Server(int port, std::string _password);

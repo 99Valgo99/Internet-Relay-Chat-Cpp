@@ -1,6 +1,6 @@
 CC = c++
 CFLAG = -Wall -Wextra -Werror -std=c++98
-SRC = Irc.cpp Server.cpp
+SRC = Irc.cpp Server.cpp Client.cpp
 HEADER = Server.hpp Client.hpp
 NAME =	ircserv
 OBJ = $(SRC:.cpp=.o)

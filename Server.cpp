@@ -1,12 +1,13 @@
 #include "Server.hpp"
 
-Server::Server(int port, std::string _password) {
+Server::Server(int port, std::string _password)
+{
     this->password = _password;
     setupSocket(port);
 }
 
-void Server::setupSocket(int port) {
-
+void Server::setupSocket(int port)
+{
     this->listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd == -1)
         throw std::runtime_error("Error: Cannot Create Socket");
@@ -35,33 +36,38 @@ void Server::setupSocket(int port) {
     this->poll_fds.push_back(pfd);
 }
 
-void Server::run() {
-
-    while (true) {
-
+void Server::run()
+{
+    while (true)
+    {
         int up = poll(&this->poll_fds[0], poll_fds.size(), -1);
-        if (up == -1) {
+        if (up == -1)
+        {
             std::cerr << "Error" << std::endl;
             continue ;
         }
-
         std::vector<int> needRemove;
-        for (size_t i = 0; i < this->poll_fds.size(); i++) {
-            if (this->poll_fds[i].revents & POLLIN) {
+        for (size_t i = 0; i < this->poll_fds.size(); i++)
+        {
+            if (this->poll_fds[i].revents & POLLIN)
+            {
                 if (poll_fds[i].fd == this->listen_fd)
                     acceptNclient();
-                else {
+                else
+                {
                     bool present = handleClientData(this->poll_fds[i].fd);
                     if (!present)
                         needRemove.push_back(poll_fds[i].fd);
                 }
             }
         }
-        for (size_t j = 0; j < needRemove.size(); j++) {
+        for (size_t j = 0; j < needRemove.size(); j++)
+        {
             int deadFd = needRemove[j];
-
-            for (size_t x = 0; x < this->poll_fds.size(); x++) {
-                if (this->poll_fds[x].fd == deadFd) {
+            for (size_t x = 0; x < this->poll_fds.size(); x++)
+            {
+                if (this->poll_fds[x].fd == deadFd)
+                {
                     this->poll_fds.erase(this->poll_fds.begin() + x);
                     break;
                 }
@@ -71,10 +77,12 @@ void Server::run() {
     }
 }
 
-void Server::acceptNclient() {
+void Server::acceptNclient()
+{
     Client cl;
     cl.fd = accept(this->listen_fd, NULL, NULL);
-    if (cl.fd == -1) {
+    if (cl.fd == -1)
+    {
         std::cerr << "Error" << std::endl;
         return ;
     }
@@ -87,13 +95,15 @@ void Server::acceptNclient() {
     this->clients.insert(std::make_pair(cl.fd, cl));
 }
 
-bool Server::handleClientData(int fd) {
+bool Server::handleClientData(int fd)
+{
     char tempo[1024];
     int bytes = recv(fd, tempo, sizeof(tempo), 0);
     if (bytes > 0) {
         clients[fd].bufferBites.append(tempo, bytes);
 
-        while (true) {
+        while (true)
+        {
             size_t pos = clients[fd].bufferBites.find('\n');
             if (pos == std::string::npos)
                 break ;
@@ -102,14 +112,113 @@ bool Server::handleClientData(int fd) {
 
             if (!wellFormed.empty() && wellFormed[wellFormed.size() - 1] == '\r')
                 wellFormed.erase(wellFormed.size() - 1);
-                // TODO 
+            
+            std::istringstream stream(wellFormed);
+            std::string command;
+            stream >> command;
+            if (command == "PASS")
+            {
+                std::string arg, leftovers;
+                stream >> arg;
+                if (stream >> leftovers)
+                    std::cerr << "Error: PASS should have one argument" << std::endl;
+                else
+                    validatePass(fd, arg);
+            }
+            else if (command == "NICK")
+            {
+                std::string arg;
+                stream >> arg;
+                validateNick(fd, arg);
+            }
+            else if (command == "USER")
+            {
+                std::string username, mode, unused, realname;
+                stream >> username >> mode >> unused;
+
+                std::getline(stream, realname);
+                if (!realname.empty() && realname[0] == ' ')
+                    realname.erase(0, 1);
+                if (!realname.empty() && realname[0] == ':')
+                    realname.erase(0, 1);
+                validateUser(fd, username, realname);
+            }
+            else
+            {
+                std::cerr << "Error: Unrecognized Command" << std::endl;
+                // for now, later i will see into adding Error Codes.
+            }
+
         }
         return true;
-    } else if (bytes == 0) { // client is dead.
-        close(fd);
-        return false;
-    } else { // bytes < 0 might be recv error or poll() already said readable.
+    }
+    else if (bytes == 0)
+    { // client is dead.
         close(fd);
         return false;
     }
+    else
+    { // bytes < 0 might be recv error or poll() already said readable.
+        close(fd);
+        return false;
+    }
+}
+
+void Server::validatePass(int fd, std::string arg)
+{
+    if (arg == this->password)
+    {
+        clients[fd].validPass = true;
+        std::cout << "Passowrd Confirmed !" << std::endl;
+    }
+    else
+    {
+        std::cerr << "Error: Wrong Password" << std::endl;
+        return ; // added
+        // to develop more...
+    }
+}
+
+void Server::validateUser(int fd, std::string username, std::string realname)
+{
+    if (!clients[fd].validPass)
+    {
+        std::cerr << "Error, Needs a password before using USER: PASS ****" << std::endl;
+        return ;
+    }
+    if (username.empty())
+    {
+        std::cerr << "No Username Provided, Expected Format: USER username mode unused :realname" << std::endl;
+        return ;
+    }
+    clients[fd].userName = username;
+    clients[fd].realName = realname;
+    std::cout << "Confirmed Username: " << clients[fd].userName << std::endl;
+    std::cout << "Confirmed realname: " << clients[fd].realName << std::endl;
+}
+
+void Server::validateNick(int fd, std::string arg)
+{
+    if (!clients[fd].validPass)
+    {
+        std::cerr << "Error, Needs a password before using NICK: PASS ****" << std::endl;
+        return ;
+    }
+    if (arg.empty())
+    {
+        std::cerr << "No Nickname Provided, Expected Format: NICK nickname" << std::endl;
+        return ;
+    }
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        if (it->first == fd)
+            continue ;
+        if (it->second.nickName == arg)
+        {
+            std::cerr << "Sorry ! Nickname Is Already Taken, Chose Something Else" << std::endl;
+            return ;
+        }
+    }
+    clients[fd].nickName = arg;
+    std::cout << "Confirmed Nickname: " << clients[fd].nickName << std::endl;
 }
