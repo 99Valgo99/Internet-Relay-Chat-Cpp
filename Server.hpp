@@ -12,6 +12,7 @@
 # include <netinet/in.h> // sockaddr_in
 # include <arpa/inet.h> // INADDR_ANY/htons
 # include <map>
+# include <unistd.h>
 
 #include "Client.hpp"
 

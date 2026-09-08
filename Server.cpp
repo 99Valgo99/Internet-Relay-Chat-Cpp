@@ -91,19 +91,17 @@ bool Server::handleClientData(int fd) {
     char tempo[1024];
     int bytes = recv(fd, tempo, sizeof(tempo), 0);
     if (bytes > 0) {
-        clients[fd].bufferBites.append(tmpo, bytes);
+        clients[fd].bufferBites.append(tempo, bytes);
 
         while (true) {
             size_t pos = clients[fd].bufferBites.find('\n');
             if (pos == std::string::npos)
                 break ;
-            l
             std::string wellFormed = clients[fd].bufferBites.substr(0, pos);
             clients[fd].bufferBites.erase(0, pos + 1);
 
             if (!wellFormed.empty() && wellFormed[wellFormed.size() - 1] == '\r')
                 wellFormed.erase(wellFormed.size() - 1);
-
                 // TODO 
         }
         return true;

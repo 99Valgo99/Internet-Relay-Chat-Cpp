@@ -109,3 +109,56 @@ struct pollfd {
 -> ``POLLIN`` -- "tell me if this fd has data ready to read" (for a listening socket, this means a new connection is pending; for a client socket, it means data arrived)
 
 -> ``POLLOUT`` "tell me if this fd is ready to accept a write without blocking" (we only need to watch for this when we actually have queued data to )
+
+## Registration Overview
+
+A client must complete three steps before the server treats it as fully registered and allows any other command (JOIN, PRIVMSG...):
+
+* ``PASS <password>`` -- correct connection password
+* ``NICK <nickname>`` -- a valid, unique nickname
+* ``USER <username> <mode> <unused> :<realname>`` -- user identity info
+
+Order between NICK and USER is flexible in real IRC clients (some send NICK first, some USER first), but **PASS should come before both** -- if a cleint tries NICK/USER before a correct PASS, the server should reject it. Registration is only "complete" once all three have succeded at least once.
+
+### Pass
+
+**Purpose**: authenticate the connection against the server's startup password
+
+**Format**: ``PASS <password>``
+
+#### Server behavior:
+
+* Compare the given password to the one passed as ``argv[2]`` at server startup
+* If correct: mark this client as "password accepted" internally
+* If incorrect: the client should not be allowed to complete registration -- real servers send back an error numberic reply (``464 ERR_PASSWDMISMATCH``) and typically disconnect the client
+* If a client sends PASS after already being fully registered: real server send ``462 ERR_ALREADYREGISTRED`` -- this is invalid at that point, not a way to change password mid-session
+
+***
+
+### NICK
+
+**Purpose**: set/change the client's nickname -- their visible short identity
+
+**Format**: ``NICK <nickname>``
+
+#### Server behavior:
+
+* Check the requested nickname isn't already in use by another connected client (nickname are unique server-wide)
+* If available: assign it to this client
+* If taken: reject with ``433 ERR_NICKNAMEINUSE``, client keeps whatever nick (or lack of one) if had before
+* If missing entirely (e.g just ``NICK`` with no argument): ``431 ERR_NONICKNAMEGIVEN``
+
+***
+
+### USER
+
+**Purpose**: set the client's username and realname (display identity info)
+
+**Format**: ``USER <username> <mode> <unused> :<realname>``
+
+#### Server behavior:
+
+* Parse and store ``username`` and ``realname``
+* ``<mode>`` and ``<unused>`` -- accept and discard; no mandatory-scope logic depends on them
+* If a client sends USER after already being fully registered: ``462 ERR_ALREADYREGISTRED`` -- same as re-sending PASS, this ins't a way to update identity later
+***
