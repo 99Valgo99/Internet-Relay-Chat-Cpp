@@ -15,7 +15,8 @@
 # include <unistd.h>
 # include <sstream>
 
-#include "Client.hpp"
+# include "Client.hpp"
+# include "Channel.hpp"
 
 class Server {
     private:
@@ -23,6 +24,7 @@ class Server {
         std::vector<struct pollfd> poll_fds;
         std::map<int, Client> clients;
         std::string password;
+        std::map<std::string, Channel> channels;
     
         void setupSocket(int port);
         void acceptNclient();
