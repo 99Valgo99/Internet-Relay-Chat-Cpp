@@ -127,21 +127,36 @@ bool Server::handleClientData(int fd)
             }
             else if (command == "NICK")
             {
-                std::string arg;
+                std::string arg, leftovers;
                 stream >> arg;
-                validateNick(fd, arg);
+                if (stream >> leftovers)
+                    std::cerr << "Error: NICK should have one argument" << std::endl;
+                else
+                    validateNick(fd, arg);
             }
             else if (command == "USER")
             {
                 std::string username, mode, unused, realname;
                 stream >> username >> mode >> unused;
 
+                if (username.empty() || mode.empty() || unused.empty())
+                {
+                    std::cerr << "Error: USER command requires [username, mode, unused, realname]" << std::endl;
+                    continue ;
+                }
                 std::getline(stream, realname);
                 if (!realname.empty() && realname[0] == ' ')
                     realname.erase(0, 1);
-                if (!realname.empty() && realname[0] == ':')
+                if (realname.empty() || realname[0] != ':')
+                {
+                    std::cerr << "Error: USER realname argument should start with ':'" << std::endl;
+                    continue ;
+                }
+                else
+                {
                     realname.erase(0, 1);
-                validateUser(fd, username, realname);
+                    validateUser(fd, username, realname);
+                }
             }
             else
             {
