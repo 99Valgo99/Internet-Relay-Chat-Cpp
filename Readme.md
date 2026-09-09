@@ -1,5 +1,7 @@
 # Internet Relay Chat (C++)
 
+![logo](Img/IRC.png)
+
 ### Key Concepts To Understand In Order To Go Through This Project
 
 * 1. **TCP sockets**
