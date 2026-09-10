@@ -5,19 +5,19 @@ Channel::Channel(std::string name, int fd) {
     this->fds_list.insert(fd);
 }
 
-void addClientsToChannel(int fd) {
+void Channel::addClientsToChannel(int fd) {
     this->fds_list.insert(fd);
 }
 
-void removeClientsFromChannel(int fd) {
-    thos->fds_list.erase(fd);
+void Channel::removeClientsFromChannel(int fd) {
+    this->fds_list.erase(fd);
 }
 
 const std::string& Channel::getChannelsName() const {
     return (this->channelsName);
 }
 
-const std::set<int>& getChannelsMembers() const {
+const std::set<int>& Channel::getChannelsMembers() const {
     return (this->fds_list);
 }
 

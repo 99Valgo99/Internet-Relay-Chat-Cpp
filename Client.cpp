@@ -5,6 +5,6 @@ Client::Client() {
     this->validPass = false;
 }
 
-bool Client::clientRegistered() const {
+bool Client::isClientAuth() const {
     return (this->validPass && !this->nickName.empty() && !this->userName.empty());
 }

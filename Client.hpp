@@ -14,7 +14,7 @@ class Client {
     std::string realName;
 
     Client();
-    bool clientRegistered() const;
+    bool isClientAuth() const;
 };
 
 #endif

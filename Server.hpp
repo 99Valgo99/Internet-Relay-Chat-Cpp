@@ -19,19 +19,23 @@
 # include "Channel.hpp"
 
 class Server {
+
     private:
+
         int listen_fd;
-        std::vector<struct pollfd> poll_fds;
-        std::map<int, Client> clients;
         std::string password;
+        std::map<int, Client> clients;
+        std::vector<struct pollfd> poll_fds;
         std::map<std::string, Channel> channels;
     
-        void setupSocket(int port);
         void acceptNclient();
-        bool handleClientData(int fd);
+        void setupSocket(int port);
         void validatePass(int fd, std::string arg);
         void validateNick(int fd, std::string arg);
         void validateUser(int fd, std::string username, std::string realname);
+        
+        bool handleClientData(int fd);
+        void handleJoin(int fd, std::string nameChannel);
 
     public:
         Server(int port, std::string _password);

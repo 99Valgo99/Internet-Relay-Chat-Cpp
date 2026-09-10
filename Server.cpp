@@ -90,6 +90,7 @@ void Server::acceptNclient()
     pfd_client.fd = cl.fd;
     pfd_client.events = POLLIN;
     pfd_client.revents = 0;
+
     this->poll_fds.push_back(pfd_client);
     std::cout << "New Client [fd]: " << cl.fd << " Is In..." << std::endl;
     this->clients.insert(std::make_pair(cl.fd, cl));
@@ -157,6 +158,15 @@ bool Server::handleClientData(int fd)
                     realname.erase(0, 1);
                     validateUser(fd, username, realname);
                 }
+            }
+            else if (command == "JOIN")
+            {
+                std::string channelname, leftovers;
+                stream >> channelname;
+                if (stream >> leftovers)
+                    std::cerr << "Error: JOIN should have one argument" << std::endl;
+                else
+                    handleJoin(fd, channelname);
             }
             else
             {
@@ -236,4 +246,25 @@ void Server::validateNick(int fd, std::string arg)
     }
     clients[fd].nickName = arg;
     std::cout << "Confirmed Nickname: " << clients[fd].nickName << std::endl;
+}
+
+void Server::handleJoin(int fd, std::string nameChannel)
+{
+    if (!clients[fd].isClientAuth())
+    {
+        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        return ;
+    }
+    std::map<std::string, Channel>::iterator it = channels.find(nameChannel);
+    if (it == channels.end())
+    {
+        Channel newChannel(nameChannel, fd);
+        this->channels.insert(std::make_pair(nameChannel, newChannel));
+        std::cout << "Channel was created and client was added to channel: " << nameChannel << std::endl;
+    }
+    else
+    {
+        it->second.addClientsToChannel(fd);
+        std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
+    }
 }
