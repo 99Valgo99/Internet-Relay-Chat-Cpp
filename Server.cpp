@@ -181,10 +181,22 @@ bool Server::handleClientData(int fd)
             {
                 std::string channelname, leftovers;
                 stream >> channelname;
+                if (channelname.empty())
+                {
+                    std::cerr << "Error: Channel must have a name !" << std::endl;
+                    continue ;
+                }
+                if (channelname[0] != '#')
+                {
+                    std::cerr << "Error: A channel should always start with '#' !" << std::endl;
+                    continue ;
+                }
                 if (stream >> leftovers)
+                {
                     std::cerr << "Error: JOIN should have one argument" << std::endl;
-                else
-                    handleJoin(fd, channelname);
+                    continue ;
+                }
+                handleJoin(fd, channelname);
             }
             else
             {
