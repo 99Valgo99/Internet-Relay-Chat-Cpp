@@ -36,6 +36,7 @@ class Server {
         
         bool handleClientData(int fd);
         void handleJoin(int fd, std::string nameChannel);
+        void handlePrvMsg(int fd, std::string targets, std::string message);
 
     public:
         Server(int port, std::string _password);

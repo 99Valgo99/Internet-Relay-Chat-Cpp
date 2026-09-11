@@ -186,17 +186,45 @@ bool Server::handleClientData(int fd)
                     std::cerr << "Error: Channel must have a name !" << std::endl;
                     continue ;
                 }
-                if (channelname[0] != '#')
-                {
-                    std::cerr << "Error: A channel should always start with '#' !" << std::endl;
-                    continue ;
-                }
                 if (stream >> leftovers)
                 {
                     std::cerr << "Error: JOIN should have one argument" << std::endl;
                     continue ;
                 }
-                handleJoin(fd, channelname);
+                size_t start = 0;
+                while (true)
+                {
+                    std::string getOneChannel;
+                    size_t posComma = channelname.find(',', start);
+                    if (posComma == std::string::npos)
+                    {
+                        getOneChannel = channelname.substr(start);
+                        handleJoin(fd, getOneChannel);
+                        break ;
+                    }
+                    getOneChannel = channelname.substr(start, posComma - start);
+                    handleJoin(fd, getOneChannel);
+                    start = posComma + 1;
+                }
+            }
+            else if (command == "PRIVMSG")
+            {
+                std::string targets, message;
+                stream >> targets;
+                if (targets.empty())
+                {
+                    std::cerr << "Error: PRIVMSG should have at least one argument !" << std::endl;
+                    continue ;
+                }
+                std::getline(stream, message);
+                if (!message.empty() && message[0] == ' ')
+                    message.erase(0, 1);
+                if (message.empty() || message[0] != ':')
+                {
+                    std::cerr << "Error: PRIVMGS second arg format [:msg] !" << std::endl;
+                    continue ;
+                }
+                handlePrvMsg(fd, targets, message);
             }
             else
             {
@@ -216,90 +244,5 @@ bool Server::handleClientData(int fd)
     { // bytes < 0 might be recv error or poll() already said readable.
         close(fd);
         return false;
-    }
-}
-
-void Server::validatePass(int fd, std::string arg)
-{
-    if (arg == this->password)
-    {
-        clients[fd].validPass = true;
-        std::cout << "Passowrd Confirmed !" << std::endl;
-    }
-    else
-    {
-        std::cerr << "Error: Wrong Password" << std::endl;
-        return ; // added
-        // to develop more...
-    }
-}
-
-void Server::validateUser(int fd, std::string username, std::string realname)
-{
-    if (!clients[fd].validPass)
-    {
-        std::cerr << "Error, Needs a password before using USER: PASS ****" << std::endl;
-        return ;
-    }
-    if (username.empty())
-    {
-        std::cerr << "No Username Provided, Expected Format: USER username mode unused :realname" << std::endl;
-        return ;
-    }
-    clients[fd].userName = username;
-    clients[fd].realName = realname;
-    std::cout << "Confirmed Username: " << clients[fd].userName << std::endl;
-    std::cout << "Confirmed realname: " << clients[fd].realName << std::endl;
-}
-
-void Server::validateNick(int fd, std::string arg)
-{
-    if (!clients[fd].validPass)
-    {
-        std::cerr << "Error, Needs a password before using NICK: PASS ****" << std::endl;
-        return ;
-    }
-    if (arg.empty())
-    {
-        std::cerr << "No Nickname Provided, Expected Format: NICK nickname" << std::endl;
-        return ;
-    }
-    if (arg[0] == '#')
-    {
-        std::cerr << "Error: Can't start you nickname with '#', Only a channel do" << std::endl;
-        return ;
-    }
-    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
-    {
-        if (it->first == fd)
-            continue ;
-        if (it->second.nickName == arg)
-        {
-            std::cerr << "Sorry ! Nickname Is Already Taken, Chose Something Else" << std::endl;
-            return ;
-        }
-    }
-    clients[fd].nickName = arg;
-    std::cout << "Confirmed Nickname: " << clients[fd].nickName << std::endl;
-}
-
-void Server::handleJoin(int fd, std::string nameChannel)
-{
-    if (!clients[fd].isClientAuth())
-    {
-        std::cerr << "Error: You are not authenticated yet !" << std::endl;
-        return ;
-    }
-    std::map<std::string, Channel>::iterator it = channels.find(nameChannel);
-    if (it == channels.end())
-    {
-        Channel newChannel(nameChannel, fd);
-        this->channels.insert(std::make_pair(nameChannel, newChannel));
-        std::cout << "Channel was created and client was added to channel: " << nameChannel << std::endl;
-    }
-    else
-    {
-        it->second.addClientsToChannel(fd);
-        std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
     }
 }
