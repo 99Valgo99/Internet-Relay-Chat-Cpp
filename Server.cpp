@@ -119,12 +119,30 @@ bool Server::handleClientData(int fd)
             stream >> command;
             if (command == "PASS")
             {
-                std::string arg, leftovers;
-                stream >> arg;
-                if (stream >> leftovers)
-                    std::cerr << "Error: PASS should have one argument" << std::endl;
-                else
+                std::string arg;
+                std::getline(stream, arg);
+
+                if (arg.empty())
+                {
+                    std::cerr << "Error: PASS should have one argument at least !" << std::endl;
+                    continue ;
+                }
+                if (!arg.empty() && arg[0] == ' ')
+                    arg.erase(0, 1);
+                if (!arg.empty() && arg[0] == ':')
+                {
+                    arg.erase(0, 1);
                     validatePass(fd, arg);
+                }
+                else
+                {
+                    if (arg.find(' ') != std::string::npos)
+                    {
+                        std::cerr << "Error: PASS should have one argument !" << std::endl;
+                        continue ;
+                    }
+                    validatePass(fd, arg);
+                }
             }
             else if (command == "NICK")
             {
@@ -232,6 +250,11 @@ void Server::validateNick(int fd, std::string arg)
     if (arg.empty())
     {
         std::cerr << "No Nickname Provided, Expected Format: NICK nickname" << std::endl;
+        return ;
+    }
+    if (arg[0] == '#')
+    {
+        std::cerr << "Error: Can't start you nickname with '#', Only a channel do" << std::endl;
         return ;
     }
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
