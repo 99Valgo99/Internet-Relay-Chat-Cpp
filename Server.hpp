@@ -29,6 +29,7 @@ class Server {
         std::map<std::string, Channel> channels;
     
         void acceptNclient();
+        bool spreadMessage(int fd);
         void setupSocket(int port);
         void validatePass(int fd, std::string arg);
         void validateNick(int fd, std::string arg);
@@ -38,7 +39,7 @@ class Server {
         void handleJoin(int fd, std::string nameChannel);
         void handlePrvMsg(int fd, std::string targets, std::string message);
 
-        void msgSendToNick(int fd, std::string target, std::string message);
+        void msgSendToNick(std::string target, std::string message);
         void msgSendToChannel(int fd, std::string target, std::string message);
     
     public:

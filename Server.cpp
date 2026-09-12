@@ -69,6 +69,12 @@ void Server::run()
                         needRemove.push_back(poll_fds[i].fd);
                 }
             }
+            if (this->poll_fds[i].revents & POLLOUT)
+            {
+                bool alive = spreadMessage(poll_fds[i].fd);
+                if (!alive)
+                    needRemove.push_back(poll_fds[i].fd);
+            }
         }
         for (size_t j = 0; j < needRemove.size(); j++)
         {
@@ -256,27 +262,3 @@ bool Server::handleClientData(int fd)
     }
 }
 
-void Server::msgSendToNick(int fd, std::string target, std::string message)
-{
-    (void)message;
-    if (target.empty())
-    {
-        std::cerr << "ERROR: PRIVMSG does not accept emtpy target !" << std::endl;
-        return ;
-    }
-    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
-    {
-        if (it->second.nickName == target)
-        {
-            std::cout << "Sending to Client: (updated output) -> " << it->second.nickName << std::endl;
-            return ;
-        }
-    }
-    std::cout << "Error: No such a client with the nickname:" << target << std::endl;
-}
-
-void Server::msgSendToChannel(int fd, std::string target, std::string message)
-{
-    (void)fd, (void)message;
-    std::cout << "Broadcasting to channel: " << target << std::endl;
-}
