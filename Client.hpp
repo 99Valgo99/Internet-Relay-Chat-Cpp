@@ -7,6 +7,7 @@ class Client {
     public:
         int fd;
         std::string bufferBites;
+        std::string sendBytes;
 
     bool validPass;
     std::string nickName;

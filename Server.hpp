@@ -38,6 +38,9 @@ class Server {
         void handleJoin(int fd, std::string nameChannel);
         void handlePrvMsg(int fd, std::string targets, std::string message);
 
+        void msgSendToNick(int fd, std::string target, std::string message);
+        void msgSendToChannel(int fd, std::string target, std::string message);
+    
     public:
         Server(int port, std::string _password);
         void run();

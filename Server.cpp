@@ -20,8 +20,8 @@ void Server::setupSocket(int port)
     std::memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
-    address.sin_addr.s_addr = INADDR_ANY;
-
+    // address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_addr.s_addr = inet_addr("127.0.0.1");
     if (bind(this->listen_fd, (sockaddr*)&address, sizeof(address)))
         throw std::runtime_error("Error");
     if (listen(this->listen_fd, SOMAXCONN))
@@ -40,6 +40,15 @@ void Server::run()
 {
     while (true)
     {
+        for (size_t i = 0; i < poll_fds.size(); i++)
+        {
+            if (poll_fds[i].fd == this->listen_fd)
+                continue ;
+            if (!clients[poll_fds[i].fd].sendBytes.empty())
+                poll_fds[i].events = POLLIN | POLLOUT;
+            else
+                poll_fds[i].events = POLLIN;
+        }
         int up = poll(&this->poll_fds[0], poll_fds.size(), -1);
         if (up == -1)
         {
@@ -245,4 +254,29 @@ bool Server::handleClientData(int fd)
         close(fd);
         return false;
     }
+}
+
+void Server::msgSendToNick(int fd, std::string target, std::string message)
+{
+    (void)message;
+    if (target.empty())
+    {
+        std::cerr << "ERROR: PRIVMSG does not accept emtpy target !" << std::endl;
+        return ;
+    }
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        if (it->second.nickName == target)
+        {
+            std::cout << "Sending to Client: (updated output) -> " << it->second.nickName << std::endl;
+            return ;
+        }
+    }
+    std::cout << "Error: No such a client with the nickname:" << target << std::endl;
+}
+
+void Server::msgSendToChannel(int fd, std::string target, std::string message)
+{
+    (void)fd, (void)message;
+    std::cout << "Broadcasting to channel: " << target << std::endl;
 }

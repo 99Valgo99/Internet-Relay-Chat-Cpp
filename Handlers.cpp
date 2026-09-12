@@ -28,6 +28,33 @@ void Server::handleJoin(int fd, std::string nameChannel)
 
 void Server::handlePrvMsg(int fd, std::string targets, std::string message)
 {
-    (void)fd, (void)targets, (void)message;
     std::cout << "PRVMSG was succesfully called !" << std::endl;
+    if (!clients[fd].isClientAuth())
+    {
+        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        return ;
+    }
+    
+    message.erase(0, 1);
+    size_t start = 0;
+    bool lastOne = false;
+    while (!lastOne)
+    {
+        std::string oneTarget;
+        size_t posComma = targets.find(',', start);
+        if (posComma == std::string::npos)
+        {
+            oneTarget = targets.substr(start);
+            lastOne = true;
+        }
+        else
+        {
+            oneTarget = targets.substr(start, posComma - start);
+            start = posComma + 1;
+        }
+        if (!oneTarget.empty() && oneTarget[0] == '#')
+            msgSendToChannel(fd, oneTarget, message);
+        else
+            msgSendToNick(fd, oneTarget, message);
+    }
 }

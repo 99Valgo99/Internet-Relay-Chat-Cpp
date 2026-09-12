@@ -206,3 +206,30 @@ A ``Channel`` doesn't exist until someone ``JOIN``s it -- there\s no pre-definde
 When forwarding a message to multiple members, we are calling ``send()`` on eah of their fds -- but remember, ``send()`` **can partailly write**, and we are not supposed to call ``send()``/``recv()`` outisde a single ``poll()`` loop's control. This is where the ``POLLOUT``/outbox conecpt fundamentals finally becomes unavoidable -- we can't keep deferring it once we have actively broadcasting to multiple clients per command.
 
 ***
+
+### Structue shape of the Host Server
+
+```
+POLLIN  — direction: something → SERVER (incoming, server reads)
+
+  listen_fd  : a new client is trying to connect (accept() time)
+  client fd  : that client sent bytes (recv() time — commands, PRIVMSG text, etc.)
+
+POLLOUT — direction: SERVER → something (outgoing, server writes)
+
+  listen_fd  : never used — listener never sends data
+  client fd  : server has bytes queued in that client's sendBytes,
+               waiting to be delivered (send() time) — regardless of
+               WHY those bytes exist:
+                 - a relayed PRIVMSG from another client
+                 - a channel broadcast
+                 - a numeric error/reply the server itself generated
+                 - a welcome message
+
+Rule of thumb:
+  POLLIN  = "can I read from this fd right now?"
+  POLLOUT = "can I write to this fd right now?"
+
+  Content/purpose of the data is irrelevant to which flag applies —
+  only the DIRECTION of travel (into the server, or out of it) decides.
+```
