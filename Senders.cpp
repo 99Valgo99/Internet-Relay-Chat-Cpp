@@ -1,6 +1,12 @@
 # include "Server.hpp"
 
-void Server::msgSendToNick(std::string target, std::string message)
+std::string Server::buildSenderPrifix(int fd)
+{
+    std::string Sender = ":" + this->clients[fd].nickName + "!" + this->clients[fd].userName + "@localhost";
+    return Sender;
+}
+
+void Server::msgSendToNick(int fd, std::string target, std::string message)
 {
     if (target.empty())
     {
@@ -12,7 +18,8 @@ void Server::msgSendToNick(std::string target, std::string message)
         if (it->second.nickName == target)
         {
             std::cout << "Sending to Client: (updated output) -> " << it->second.nickName << std::endl;
-            it->second.sendBytes.append(message + "\r\n");
+            std::string sender = buildSenderPrifix(fd);
+            it->second.sendBytes.append(sender + " PRIVMSG " + target + " :" + message + "\r\n");
             return ;
         }
     }

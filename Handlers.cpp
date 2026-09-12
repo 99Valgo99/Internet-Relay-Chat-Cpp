@@ -55,6 +55,6 @@ void Server::handlePrvMsg(int fd, std::string targets, std::string message)
         if (!oneTarget.empty() && oneTarget[0] == '#')
             msgSendToChannel(fd, oneTarget, message);
         else
-            msgSendToNick(oneTarget, message);
+            msgSendToNick(fd, oneTarget, message);
     }
 }
