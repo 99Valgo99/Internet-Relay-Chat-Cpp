@@ -28,8 +28,34 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
 
 void Server::msgSendToChannel(int fd, std::string target, std::string message)
 {
-    (void)fd, (void)message;
     std::cout << "Broadcasting to channel: " << target << std::endl;
+    if (target.empty())
+    {
+        std::cerr << "Error: PRIVMSG does not accept empty target !" << std::endl;
+        return ;
+    }
+    std::map<std::string, Channel>::iterator it = this->channels.find(target);
+    if (it == this->channels.end())
+    {
+        std::cerr << "Error: No Channel was found with this name !" << std::endl;
+        return ;
+    }
+    else
+    {
+        std::string sender = buildSenderPrifix(fd);
+        const std::set<int>& members = it->second.getChannelsMembers();
+        if (members.find(fd) == members.end())
+        {
+            std::cerr << "Error: The client has not joined this channel !" << std::endl;
+            return ;
+        }
+        for (std::set<int>::const_iterator it_members = members.begin(); it_members != members.end(); ++it_members)
+        {
+            if (*it_members == fd)
+                continue ;
+            this->clients[*it_members].sendBytes.append(sender + " PRIVMSG " + target + " :" + message + "\r\n");
+        }
+    }
 }
 
 bool Server::spreadMessage(int fd)
