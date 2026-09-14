@@ -114,6 +114,11 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
 void Server::handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment)
 {
     (void)comment;
+    if (!clients[fd].isClientAuth())
+    {
+        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        return ;
+    }
     if (!(listChannel.size() == 1 || listChannel.size() == listUsers.size()))
     {
         std::cerr << "Error: Malformed input for Kick !" << std::endl;
@@ -128,5 +133,44 @@ void Server::handleKick(int fd, std::vector<std::string> listChannel, std::vecto
     {
         for (size_t index = 0; index < listChannel.size(); index++)
             kickOneClient(fd, listChannel[index], listUsers[index]);
+    }
+}
+
+void Server::handleTopic(int fd, std::string channelT, std::string _topic)
+{
+    if (!clients[fd].isClientAuth())
+    {
+        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        return ;
+    }
+    std::map<std::string, Channel>::iterator it = this->channels.find(channelT);
+    if (it == channels.end())
+    {
+        std::cerr << "Error: Channel speicifed in TOPIC does not exist !" << std::endl;
+        return ;
+    }
+    std::set<int>::const_iterator member = it->second.getChannelsMembers().find(fd);
+    if (member == it->second.getChannelsMembers().end())
+    {
+        std::cerr << "Error: This Client is not a member in this Channel" << std::endl;
+        return ;
+    }
+    if (_topic.empty())
+    {
+        std::cout << "Channel's topic is: " << it->second.getTopic() << std::endl;
+        return ;
+    }
+    else if (_topic[0] == ':')
+    {
+        _topic.erase(0, 1);
+        if (_topic.empty())
+            it->second.setTopic("");
+        else
+            it->second.setTopic(_topic);
+    }
+    else
+    {
+        std::cerr << "Error: Malformed input for TOPIC" << std::endl;
+        return ;
     }
 }

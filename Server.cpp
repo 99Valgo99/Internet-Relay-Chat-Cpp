@@ -296,6 +296,20 @@ bool Server::handleClientData(int fd)
                 }
                 handleKick(fd, listChannel, listUsers, comment);
             }
+            else if (command == "TOPIC")
+            {
+                std::string channel, topic;
+                stream >> channel;
+                if (channel.empty())
+                {
+                    std::cerr << "Error: TOPIC must have at least one argument !" << std::endl;
+                    continue ;
+                }
+                std::getline(stream, topic);
+                if (!topic.empty() && topic[0] == ' ')
+                    topic.erase(0, 1);
+                handleTopic(fd, channel, topic);
+            }
             else
             {
                 std::cerr << "Error: Unrecognized Command" << std::endl;

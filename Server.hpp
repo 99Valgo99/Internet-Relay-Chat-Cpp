@@ -21,7 +21,6 @@
 class Server {
 
     private:
-
         int listen_fd;
         std::string password;
         std::map<int, Client> clients;
@@ -37,9 +36,10 @@ class Server {
         
         bool handleClientData(int fd);
         void handleJoin(int fd, std::string nameChannel);
+        void handleTopic(int fd, std::string channelT, std::string _topic);
         void handlePrvMsg(int fd, std::string targets, std::string message);
-        void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
         void kickOneClient(int fd, std::string listChannel, std::string listUser);
+        void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
 
         std::string buildSenderPrifix(int fd);
         void msgSendToNick(int fd, std::string target, std::string message);
