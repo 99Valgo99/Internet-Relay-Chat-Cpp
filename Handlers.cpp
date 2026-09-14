@@ -174,3 +174,62 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
         return ;
     }
 }
+
+void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
+{
+    if (!clients[fd].isClientAuth())
+    {
+        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        return ;
+    }
+    if (_nickname[0] == '#')
+    {
+        std::cerr << "Error: Invalid Nickname !" << std::endl;
+        return ;
+    }
+    if (_channel[0] != '#')
+    {
+        std::cerr << "Error: Invalid Channel's name !" << std::endl;
+        return ;
+    }
+    int user_fd = -1;
+    for (std::map<int, Client>::iterator cl_it = clients.begin(); cl_it != clients.end(); ++cl_it)
+    {
+        if (cl_it->second.nickName == _nickname)
+            user_fd = cl_it->first;
+    }
+    if (user_fd == -1)
+    {
+        std::cerr << "Error: The client with this nickname does not exist !" << std::endl;
+        return ;
+    }
+    std::map<std::string, Channel>::iterator it = channels.find(_channel);
+    if (it == channels.end())
+    {
+        std::cout << "Sending the invitation to: " << _nickname << std::endl;
+        // broadcast it here later...
+        return ;
+    }
+    else
+    {
+        std::set<int>::const_iterator inviter_member = it->second.getChannelsMembers().find(fd);
+        if (inviter_member == it->second.getChannelsMembers().end())
+        {
+            std::cerr << "Error: The inviter client is not a memeber of this channel !" << std::endl;
+            return ;
+        }
+        std::set<int>::const_iterator member = it->second.getChannelsMembers().find(user_fd);
+        if (member == it->second.getChannelsMembers().end())
+        {
+            std::cout << "Inviting " << _nickname << std::endl;
+            it->second.addInvited(user_fd);
+            // broadcast here later..
+            return ;
+        }
+        else
+        {
+            std::cout << "Error: the invited client is already a member of this channel !" << std::endl;
+            return ;
+        }
+    }
+}

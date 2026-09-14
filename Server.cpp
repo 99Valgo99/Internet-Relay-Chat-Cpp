@@ -310,6 +310,25 @@ bool Server::handleClientData(int fd)
                     topic.erase(0, 1);
                 handleTopic(fd, channel, topic);
             }
+            else if (command == "INVITE")
+            {
+                std::string nickname, channel, leftovers;
+                stream >> nickname >> channel;
+                if (nickname.empty() || channel.empty())
+                {
+                    std::cerr << "Error: Malformed argument for INVITE" << std::endl;
+                    continue ;
+                }
+                std::getline(stream, leftovers);
+                if (!leftovers.empty() && leftovers[0] == ' ')
+                    leftovers.erase(0, 1);
+                if (!leftovers.empty())
+                {
+                    std::cerr << "Error: INVITE requires only two args <nickname> and <channel> !" << std::endl;
+                    continue ;
+                }
+                handleInvite(fd, nickname, channel);
+            }
             else
             {
                 std::cerr << "Error: Unrecognized Command" << std::endl;

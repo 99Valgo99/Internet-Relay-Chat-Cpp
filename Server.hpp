@@ -38,6 +38,7 @@ class Server {
         void handleJoin(int fd, std::string nameChannel);
         void handleTopic(int fd, std::string channelT, std::string _topic);
         void handlePrvMsg(int fd, std::string targets, std::string message);
+        void handleInvite(int fd, std::string _nickname, std::string _channel);
         void kickOneClient(int fd, std::string listChannel, std::string listUser);
         void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
 
