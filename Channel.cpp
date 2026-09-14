@@ -46,3 +46,8 @@ const std::set<int>& Channel::getInvitedMembers() const {
 const std::string& Channel::getTopic() const {
     return (this->topic);
 }
+
+void Channel::removeOperator(int fd)
+{
+    this->operators.erase(fd);
+}

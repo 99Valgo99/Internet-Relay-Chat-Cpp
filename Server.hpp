@@ -38,6 +38,8 @@ class Server {
         bool handleClientData(int fd);
         void handleJoin(int fd, std::string nameChannel);
         void handlePrvMsg(int fd, std::string targets, std::string message);
+        void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
+        void kickOneClient(int fd, std::string listChannel, std::string listUser);
 
         std::string buildSenderPrifix(int fd);
         void msgSendToNick(int fd, std::string target, std::string message);

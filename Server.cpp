@@ -241,12 +241,66 @@ bool Server::handleClientData(int fd)
                 }
                 handlePrvMsg(fd, targets, message);
             }
+            else if (command == "KICK")
+            {
+                std::string channelList, usersList, comment;
+                stream >> channelList >> usersList;
+                if (channelList.empty() || usersList.empty())
+                {
+                    std::cerr << "Error: KICK needs a channel + users to kick !" << std::endl;
+                    continue ;
+                }
+                std::getline(stream, comment);
+                if (!comment.empty() && comment[0] == ' ')
+                    comment.erase(0, 1);
+                if (!comment.empty())
+                {
+                    if (comment[0] == ':')
+                        comment.erase(0, 1);
+                    else
+                    {
+                        std::cerr << "Error: Comment argument should start with ':'" << std::endl;
+                        continue ;
+                    }
+                }
+                size_t start = 0;
+                std::vector<std::string> listChannel, listUsers;
+                while (true)
+                {
+                    std::string target;
+                    size_t posComma = channelList.find(',', start);
+                    if (posComma == std::string::npos)
+                    {
+                        target = channelList.substr(start);
+                        listChannel.push_back(target);
+                        break ;
+                    }
+                    target = channelList.substr(start, posComma - start);
+                    listChannel.push_back(target);
+                    start = posComma + 1;
+                }
+                start = 0;
+                while (true)
+                {
+                    std::string target;
+                    size_t posComma = usersList.find(',', start);
+                    if (posComma == std::string::npos)
+                    {
+                        target = usersList.substr(start);
+                        listUsers.push_back(target);
+                        break ;
+                    }
+                    target = usersList.substr(start, posComma - start);
+                    listUsers.push_back(target);
+                    start = posComma + 1;
+                }
+                handleKick(fd, listChannel, listUsers, comment);
+            }
             else
             {
                 std::cerr << "Error: Unrecognized Command" << std::endl;
                 // for now, later i will see into adding Error Codes.
             }
-
         }
         return true;
     }

@@ -30,6 +30,8 @@ class Channel {
         void addInvited(int fd);
         const std::set<int>& getInvitedMembers() const;
 
+        void removeOperator(int fd);
+
 };
 
 
