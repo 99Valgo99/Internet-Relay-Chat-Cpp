@@ -201,6 +201,11 @@ bool Server::handleClientData(int fd)
                     std::cerr << "Error: Channel must have a name !" << std::endl;
                     continue ;
                 }
+                if (channelname == "0")
+                {
+                    exitAllChannels(fd);
+                    continue ;
+                }
                 if (stream >> leftovers)
                 {
                     std::cerr << "Error: JOIN should have one argument" << std::endl;

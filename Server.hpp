@@ -34,6 +34,7 @@ class Server {
         void validateNick(int fd, std::string arg);
         void validateUser(int fd, std::string username, std::string realname);
         
+        void exitAllChannels(int fd);
         bool handleClientData(int fd);
         void handleJoin(int fd, std::string nameChannel);
         void handleTopic(int fd, std::string channelT, std::string _topic);

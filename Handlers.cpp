@@ -1,5 +1,25 @@
 # include "Server.hpp"
 
+void Server::exitAllChannels(int fd)
+{
+    bool notMemberOfAny = true;
+    for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+    {
+        std::set<int>::const_iterator member = it->second.getChannelsMembers().find(fd);
+        if (member == it->second.getChannelsMembers().end())
+            continue;
+        else
+        {
+            it->second.removeClientsFromChannel(fd);
+            it->second.removeOperator(fd);
+            notMemberOfAny = false;
+            std::cout << "A client has left " << it->second.getChannelsName() << std::endl;
+        }
+    }
+    if (notMemberOfAny == true)
+        std::cout << "The client is not a memebre of any channel !" << std::endl;
+}
+
 void Server::handleJoin(int fd, std::string nameChannel)
 {
     if (!clients[fd].isClientAuth())
