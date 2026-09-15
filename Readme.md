@@ -233,3 +233,17 @@ Rule of thumb:
   Content/purpose of the data is irrelevant to which flag applies —
   only the DIRECTION of travel (into the server, or out of it) decides.
 ```
+
+### MODE - Flags
+
+```
+_________________________________________________________
+Flag | Meaning              | + needs arg? | - needs arg?
+-----|----------------------|--------------|-------------
+i    | invite-only          | no           | no
+t    | topic-restricted     | no           | no
+k    | channel key          | yes          | yes
+o    | grant/revoke operator| yes          | yes
+l    | user limit           | yes          | no
+_________________________________________________________
+```
