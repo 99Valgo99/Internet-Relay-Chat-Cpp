@@ -334,6 +334,34 @@ bool Server::handleClientData(int fd)
                 }
                 handleInvite(fd, nickname, channel);
             }
+            else if (command == "MODE")
+            {
+                char sign;
+                std::string modeStr, channelModed;
+                stream >> channelModed >> modeStr;
+
+                std::vector<std::string> argsLeft;
+                std::string oneArgVector;
+
+                while (stream >> oneArgVector)
+                    argsLeft.push_back(oneArgVector);
+                for (size_t i = 0; i < modeStr.size(); i++)
+                {
+                    if (modeStr[i] == '-' || modeStr[i] == '+')
+                    {
+                        sign = modeStr[i];
+                        std::cout << "Sign Currently is: " << sign << std::endl;
+                    }
+                    else
+                    {
+                        if (modeStr[i] == 'i' || modeStr[i] == 'k' || modeStr[i] == 'l'
+                            || modeStr[i] == 'o' || modeStr[i] == 't')
+                            std::cout << "Valid Flag: " << modeStr[i] << std::endl;
+                        else
+                            std::cout << "Invalide Flag: " << modeStr[i] << std::endl;
+                    }
+                }
+            }
             else
             {
                 std::cerr << "Error: Unrecognized Command" << std::endl;
@@ -354,3 +382,31 @@ bool Server::handleClientData(int fd)
     }
 }
 
+bool Serevr::needAnArg(char sign, char flag)
+{
+    if (flag == 'i')
+        return false;
+
+    else if (flag == 't')
+        return false;
+
+    else if (flag == 'l' && sign == '-')
+        return false;
+
+    else if (flag == 'l' && sign == '+')
+        return true;
+
+    else if (flag == 'k' && sign == '-')
+        return true;
+
+    else if (flag == 'k' && sign == '+')
+        return true;
+
+    else if (flag == 'o' && sign == '-')
+        return true;
+    
+    else if (flag == 'o' && sign == '+')
+        return true;
+
+    return false;
+}

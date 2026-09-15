@@ -46,6 +46,8 @@ class Server {
         std::string buildSenderPrifix(int fd);
         void msgSendToNick(int fd, std::string target, std::string message);
         void msgSendToChannel(int fd, std::string target, std::string message);
+
+        bool needAnArg(char sign, char flag);
     
     public:
         Server(int port, std::string _password);
