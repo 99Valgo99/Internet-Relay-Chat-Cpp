@@ -3,10 +3,15 @@
 
 # include <set>
 # include <string>
+# include <iostream>
 
 class Channel {
 
     private:
+        bool inviteOnly;
+        bool topicToggle;
+        long userLimit;
+        std::string password;
         std::string topic;
         std::string channelsName;
         std::set<int> fds_list;
@@ -25,13 +30,23 @@ class Channel {
         const std::set<int>& getChannelsMembers() const;
         
         void addOperators(int fd);
+        void removeOperator(int fd);
         const std::set<int>& getOperators() const;
 
         void addInvited(int fd);
         const std::set<int>& getInvitedMembers() const;
 
-        void removeOperator(int fd);
+        void toggleInvite(bool toggle);
+        const bool& getInviteToggle() const;
 
+        void toggleTopic(bool toggle);
+        const bool& getTopicToggle() const;
+
+        void setUserLimit(long limit);
+        const long& getUserLimit() const;
+
+        void setChannelPassword(std::string _password);
+        const std::string& getChannelPassword() const;
 };
 
 

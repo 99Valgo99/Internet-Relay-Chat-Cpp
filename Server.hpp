@@ -14,6 +14,7 @@
 # include <map>
 # include <unistd.h>
 # include <sstream>
+# include <climits>
 
 # include "Client.hpp"
 # include "Channel.hpp"
@@ -42,6 +43,9 @@ class Server {
         void handleInvite(int fd, std::string _nickname, std::string _channel);
         void kickOneClient(int fd, std::string listChannel, std::string listUser);
         void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
+        void handleMode(int fd, std::string channel_, char sign, char flag, std::string arg);
+        bool userLimitHelper(Channel& _Channel, std::string arg);
+        void operatorModeHelper(Channel& _Channel, bool& toggle, std::string& arg);
 
         std::string buildSenderPrifix(int fd);
         void msgSendToNick(int fd, std::string target, std::string message);

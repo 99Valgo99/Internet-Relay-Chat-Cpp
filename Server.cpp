@@ -376,10 +376,16 @@ bool Server::handleClientData(int fd)
                                 if (!argConsumption)
                                 {
                                     std::cerr << "Error: Mode Malformed input" << std::endl;
-                                    break ; // to verify...
+                                    continue ;
                                 }
                                 std::cout << "Arg Flags Counter: " << threeArgCounter << std::endl;
                                 std::cout << modeStr[i] << " needs an Argument" << std::endl;
+                                handleMode(fd, channelModed, sign, modeStr[i], oneArgVector);
+                            }
+                            else
+                            {
+                                std::string empty_arg;
+                                handleMode(fd, channelModed, sign, modeStr[i], empty_arg);
                             }
                             std::cout << "--------------------------------------------\n";
                         }

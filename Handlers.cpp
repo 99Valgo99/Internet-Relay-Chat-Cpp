@@ -253,3 +253,97 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         }
     }
 }
+
+bool Server::userLimitHelper(Channel& _Channel, std::string arg)
+{
+    for (size_t i = 0; i < arg.size(); i++)
+    {
+        if (!std::isdigit(arg[i]))
+            return false;
+    }
+    char *endptr;
+    long value = std::strtol(arg.c_str(), &endptr, 10);
+    if (*endptr != '\0'|| value < 0 || value == LONG_MAX)
+        return false;
+    _Channel.setUserLimit(value);
+    return true;
+}
+
+void Server::operatorModeHelper(Channel& _Channel, bool& toggle, std::string& arg)
+{
+    int user_fd = -1;
+    for (std::map<int, Client>::iterator client_it = clients.begin(); client_it != clients.end(); ++client_it)
+    {
+        if (client_it->second.nickName == arg)
+        {
+            user_fd = client_it->first;
+            break;
+        }
+    }
+    if (user_fd == -1)
+    {
+        std::cerr << "Error: MODE Client does not exist !" << std::endl;
+        return ;
+    }
+    std::set<int>::const_iterator member_it = _Channel.getChannelsMembers().find(user_fd);
+    if (member_it == _Channel.getChannelsMembers().end())
+    {
+        std::cerr << "Error: Mode the provided Client is not a member of this channel !" << std::endl;
+        return ;
+    }
+    if (toggle)
+        _Channel.addOperators(*member_it);
+    else
+        _Channel.removeOperator(*member_it);
+}
+
+void Server::handleMode(int fd, std::string channel_, char sign, char flag, std::string arg)
+{
+    // checking if the sender is part of the channel
+    std::map<std::string, Channel>::iterator channel_it = channels.find(channel_);
+    if (channel_it == channels.end())
+    {
+        std::cerr << "ERROR: MODE channel does not exist !" << std::endl;
+        return ;
+    }
+    std::set<int>::const_iterator send_it = channel_it->second.getOperators().find(fd);
+    if (send_it == channel_it->second.getOperators().end())
+    {
+        std::cerr << "ERROR: MODE The sender is not an operator in this channel !" << std::endl;
+        return ;
+    }
+
+    bool toggle = false;
+    if (sign == '+') toggle = true;
+    else toggle = false;
+    if (arg.empty())
+    {
+        if (flag == 'i')
+            channel_it->second.toggleInvite(toggle);
+        else if (flag == 't')
+            channel_it->second.toggleTopic(toggle);
+        if (flag == 'l' && !toggle)
+            channel_it->second.setUserLimit(-1);
+    }
+    else if (!arg.empty())
+    {
+        if (flag == 'l' && toggle)
+        {
+            bool invalid = userLimitHelper(channel_it->second, arg);
+            if (!invalid)
+            {
+                std::cerr << "Error: MODE invalid argument for l flag" << std::endl;
+                return ;
+            }
+        }
+        else if (flag == 'k')
+        {
+            if (!toggle)
+                channel_it->second.setChannelPassword("");
+            else
+                channel_it->second.setChannelPassword(arg);
+        }
+        else if (flag == 'o')
+            operatorModeHelper(channel_it->second, toggle, arg);
+    }
+}
