@@ -337,11 +337,17 @@ bool Server::handleClientData(int fd)
             else if (command == "MODE")
             {
                 char sign;
+                size_t threeArgCounter = 0;
                 std::string modeStr, channelModed;
                 stream >> channelModed >> modeStr;
 
-                std::vector<std::string> argsLeft;
+                if (!channelModed.empty() && channelModed[0] != '#')
+                {
+                    std::cerr << "Error: MODE Malformed input !" << std::endl;
+                    continue ;
+                }
                 std::string oneArgVector;
+                std::vector<std::string> argsLeft;
 
                 while (stream >> oneArgVector)
                     argsLeft.push_back(oneArgVector);
@@ -356,7 +362,27 @@ bool Server::handleClientData(int fd)
                     {
                         if (modeStr[i] == 'i' || modeStr[i] == 'k' || modeStr[i] == 'l'
                             || modeStr[i] == 'o' || modeStr[i] == 't')
+                        {
                             std::cout << "Valid Flag: " << modeStr[i] << std::endl;
+                            bool needsArgBoolean = needAnArg(sign, modeStr[i]);
+                            if (needsArgBoolean)
+                            {
+                                if (threeArgCounter + 1 > 3)
+                                {
+                                    std::cerr << "Error: MODE Malformed input" << std::endl;
+                                    continue ;
+                                }
+                                bool argConsumption = getTheArg(argsLeft, threeArgCounter, oneArgVector);
+                                if (!argConsumption)
+                                {
+                                    std::cerr << "Error: Mode Malformed input" << std::endl;
+                                    break ; // to verify...
+                                }
+                                std::cout << "Arg Flags Counter: " << threeArgCounter << std::endl;
+                                std::cout << modeStr[i] << " needs an Argument" << std::endl;
+                            }
+                            std::cout << "--------------------------------------------\n";
+                        }
                         else
                             std::cout << "Invalide Flag: " << modeStr[i] << std::endl;
                     }
@@ -382,12 +408,12 @@ bool Server::handleClientData(int fd)
     }
 }
 
-bool Serevr::needAnArg(char sign, char flag)
+bool Server::needAnArg(char sign, char flag)
 {
-    if (flag == 'i')
+    if (flag == 'i' && (sign == '-' || sign == '+'))
         return false;
 
-    else if (flag == 't')
+    else if (flag == 't' && (sign == '-' || sign == '+'))
         return false;
 
     else if (flag == 'l' && sign == '-')
@@ -396,17 +422,21 @@ bool Serevr::needAnArg(char sign, char flag)
     else if (flag == 'l' && sign == '+')
         return true;
 
-    else if (flag == 'k' && sign == '-')
+    else if (flag == 'k' && (sign == '-' || sign == '+'))
         return true;
 
-    else if (flag == 'k' && sign == '+')
-        return true;
-
-    else if (flag == 'o' && sign == '-')
-        return true;
-    
-    else if (flag == 'o' && sign == '+')
+    else if (flag == 'o' && (sign == '-' || sign == '+'))
         return true;
 
     return false;
+}
+
+bool Server::getTheArg(std::vector<std::string>& argLeft, size_t& index, std::string& consumedArg)
+{
+    if (index >= argLeft.size()) // the case of consumed arg while still there is a flag [+ok Someone, ok gets someone, k needs an arg while index match the size of the vector]
+        return false;
+    consumedArg = argLeft[index];
+    std::cout << "Arg consumed: " << consumedArg << std::endl;
+    index++;
+    return true;
 }

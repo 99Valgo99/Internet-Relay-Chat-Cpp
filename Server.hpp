@@ -48,6 +48,7 @@ class Server {
         void msgSendToChannel(int fd, std::string target, std::string message);
 
         bool needAnArg(char sign, char flag);
+        bool getTheArg(std::vector<std::string>& argLeft, size_t& index, std::string& consumedArg);
     
     public:
         Server(int port, std::string _password);
