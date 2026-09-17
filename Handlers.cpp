@@ -40,12 +40,19 @@ void Server::handleJoin(int fd, std::string nameChannel)
         std::cout << "Channel's first Operator/Creator: " << this->clients[*ops.begin()].nickName << std::endl;
         this->channels.insert(std::make_pair(nameChannel, newChannel));
         std::cout << "Channel was created and client was added to channel: " << nameChannel << std::endl;
+        return ;
     }
-    else
+    if (it->second.getInviteToggle())
     {
-        it->second.addClientsToChannel(fd);
-        std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
+        std::set<int>::const_iterator invitedMemb = it->second.getInvitedMembers().find(fd);
+        if (invitedMemb == it->second.getInvitedMembers().end())
+        {
+            std::cerr << "Error: The channel is Invite-Only, and the sender was not invited !" << std::endl;
+            return ;
+        }
     }
+    it->second.addClientsToChannel(fd);
+    std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
 }
 
 void Server::handlePrvMsg(int fd, std::string targets, std::string message)
