@@ -36,6 +36,11 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
     std::map<std::string, Channel>::iterator it = channels.find(nameChannel);
     if (it == channels.end())
     {
+        if (!key.empty())
+        {
+            std::cerr << "Error: Malformed JOIN argument, to set a key for a channel, use MODE #example +k" << std::endl;
+            return ;
+        }
         Channel newChannel(nameChannel, fd);
         std::set<int> ops = newChannel.getOperators();
         std::cout << "Channel's first Operator/Creator: " << this->clients[*ops.begin()].nickName << std::endl;
@@ -52,8 +57,13 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
             return ;
         }
     }
-    it->second.addClientsToChannel(fd);
-    std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
+    if (key == it->second.getChannelPassword() || it->second.getChannelPassword().empty())
+    {
+        it->second.addClientsToChannel(fd);
+        std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
+    }
+    else
+        std::cerr << "This Channel needs a password key to join it !" << std::endl;
 }
 
 void Server::handlePrvMsg(int fd, std::string targets, std::string message)
