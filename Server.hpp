@@ -37,7 +37,7 @@ class Server {
         
         void exitAllChannels(int fd);
         bool handleClientData(int fd);
-        void handleJoin(int fd, std::string nameChannel);
+        void handleJoin(int fd, std::string nameChannel, std::string key);
         void handleTopic(int fd, std::string channelT, std::string _topic);
         void handlePrvMsg(int fd, std::string targets, std::string message);
         void handleInvite(int fd, std::string _nickname, std::string _channel);

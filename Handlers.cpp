@@ -20,7 +20,7 @@ void Server::exitAllChannels(int fd)
         std::cout << "The client is not a memebre of any channel !" << std::endl;
 }
 
-void Server::handleJoin(int fd, std::string nameChannel)
+void Server::handleJoin(int fd, std::string nameChannel, std::string key)
 {
     if (!clients[fd].isClientAuth())
     {
@@ -32,6 +32,7 @@ void Server::handleJoin(int fd, std::string nameChannel)
         std::cerr << "Error: A channel should always start with '#' !" << std::endl;
         return ;
     }
+    std::cout << "Channel -> " << nameChannel << " | Key -> " << key << std::endl;
     std::map<std::string, Channel>::iterator it = channels.find(nameChannel);
     if (it == channels.end())
     {

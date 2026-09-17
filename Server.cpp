@@ -194,8 +194,8 @@ bool Server::handleClientData(int fd)
             }
             else if (command == "JOIN")
             {
-                std::string channelname, leftovers;
-                stream >> channelname;
+                std::string channelname, keys, leftovers;
+                stream >> channelname >> keys;
                 if (channelname.empty())
                 {
                     std::cerr << "Error: Channel must have a name !" << std::endl;
@@ -211,7 +211,25 @@ bool Server::handleClientData(int fd)
                     std::cerr << "Error: JOIN should have one argument" << std::endl;
                     continue ;
                 }
+                std::vector<std::string> keyholder;
                 size_t start = 0;
+                while (true)
+                {
+                    std::string oneKey;
+                    size_t posComma = keys.find(',', start);
+                    if (posComma == std::string::npos)
+                    {
+                        oneKey = keys.substr(start);
+                        keyholder.push_back(oneKey);
+                        break ;
+                    }
+                    oneKey = keys.substr(start, posComma - start);
+                    keyholder.push_back(oneKey);
+                    start = posComma + 1;
+                }
+                start = 0;
+                size_t key_index = 0;
+                std::string emptyKey;
                 while (true)
                 {
                     std::string getOneChannel;
@@ -219,12 +237,24 @@ bool Server::handleClientData(int fd)
                     if (posComma == std::string::npos)
                     {
                         getOneChannel = channelname.substr(start);
-                        handleJoin(fd, getOneChannel);
-                        break ;
+                        if (key_index >= keyholder.size())
+                        {
+                            handleJoin(fd, getOneChannel, emptyKey);
+                            break ;
+                        }
+                        else
+                        {
+                            handleJoin(fd, getOneChannel, keyholder[key_index]);
+                            break ;
+                        }
                     }
                     getOneChannel = channelname.substr(start, posComma - start);
-                    handleJoin(fd, getOneChannel);
+                    if (key_index > keyholder.size())
+                        handleJoin(fd, getOneChannel, emptyKey);
+                    else
+                        handleJoin(fd, getOneChannel, keyholder[key_index]);
                     start = posComma + 1;
+                    key_index++;
                 }
             }
             else if (command == "PRIVMSG")
