@@ -59,6 +59,11 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
     }
     if (key == it->second.getChannelPassword() || it->second.getChannelPassword().empty())
     {
+        if (it->second.getUserLimit() != -1 && it->second.getChannelsMembers().size() >= (size_t)it->second.getUserLimit())
+        {
+            std::cerr << "Error: Joining would exceed the user limit number of this channel !" << std::endl;
+            return ; 
+        }
         it->second.addClientsToChannel(fd);
         std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
     }
@@ -317,7 +322,6 @@ void Server::operatorModeHelper(Channel& _Channel, bool& toggle, std::string& ar
 
 void Server::handleMode(int fd, std::string channel_, char sign, char flag, std::string arg)
 {
-    // checking if the sender is part of the channel
     std::map<std::string, Channel>::iterator channel_it = channels.find(channel_);
     if (channel_it == channels.end())
     {
@@ -330,7 +334,7 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
         std::cerr << "ERROR: MODE The sender is not an operator in this channel !" << std::endl;
         return ;
     }
-
+    // Need to verify if a normal client can send flags even if he is not an operator
     bool toggle = false;
     if (sign == '+') toggle = true;
     else toggle = false;

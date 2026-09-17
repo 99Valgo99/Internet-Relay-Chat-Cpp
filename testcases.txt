@@ -1,0 +1,69 @@
+➜  Internet-Relay-Chat-Cpp- git:(main) ✗ ./ircserv port xoris
+New Client [fd]: 4 Is In...
+Passowrd Confirmed !
+Confirmed Username: x
+Confirmed realname: xoris
+Confirmed Nickname: Xoris
+Channel -> #Channel | Key -> 
+Channel's first Operator/Creator: Xoris
+Channel was created and client was added to channel: #Channel
+Sign Currently is: +
+Valid Flag: k
+Arg consumed: 123key
+Arg Flags Counter: 1
+k needs an Argument
+Password: 123key is set for channel: #Channel
+--------------------------------------------
+Valid Flag: i
+#ChannelInvite toggled to: 1
+--------------------------------------------
+Sign Currently is: +
+Valid Flag: l
+Arg consumed: 1
+Arg Flags Counter: 1
+l needs an Argument
+Setting user limit at: 1 for Channel: #Channel
+--------------------------------------------
+New Client [fd]: 5 Is In...
+Passowrd Confirmed !
+Confirmed Username: x
+Confirmed realname: User
+Confirmed Nickname: Bob
+Channel -> #Channel | Key -> 
+Error: The channel is Invite-Only, and the sender was not invited !
+Inviting Bob
+Channel -> #Channel | Key -> 
+This Channel needs a password key to join it !
+Channel -> #Channel | Key -> 123key
+Error: Joining would exceed the user limit number of this channel !
+Sign Currently is: +
+Valid Flag: l
+Arg consumed: 2
+Arg Flags Counter: 1
+l needs an Argument
+Setting user limit at: 2 for Channel: #Channel
+--------------------------------------------
+Channel -> #Channel | Key -> 123key
+Client was added to the existing channel: #Channel
+
+
+
+➜  Internet-Relay-Chat-Cpp- git:(main) ✗ nc localhost port
+PASS xoris
+USER x x x :xoris
+NICK Xoris
+JOIN #Channel
+MODE #Channel +ki 123key
+MODE #Channel +l 1
+INVITE Bob #Channel
+MODE #Channel +l 2
+
+
+➜  Internet-Relay-Chat-Cpp- git:(main) ✗ nc localhost port
+PASS xoris
+USER x x x :User
+NICK Bob
+JOIN #Channel
+JOIN #Channel
+JOIN #Channel 123key
+JOIN #Channel 123key
