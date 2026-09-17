@@ -1,3 +1,5 @@
+TESTING USER LIMIT FLAG
+
 ➜  Internet-Relay-Chat-Cpp- git:(main) ✗ ./ircserv port xoris
 New Client [fd]: 4 Is In...
 Passowrd Confirmed !
@@ -67,3 +69,87 @@ JOIN #Channel
 JOIN #Channel
 JOIN #Channel 123key
 JOIN #Channel 123key
+
+_______________________________________________________________________________
+
+TESTING TOIC FLAG
+
+➜  Internet-Relay-Chat-Cpp- git:(main) ✗ ./ircserv prot xoris
+New Client [fd]: 4 Is In...
+Passowrd Confirmed !
+Confirmed Username: x
+Confirmed realname: Xoris
+Confirmed Nickname: Xoris
+Channel -> #Channel | Key -> 
+Channel's first Operator/Creator: Xoris
+Channel was created and client was added to channel: #Channel
+Sign Currently is: +
+Valid Flag: t
+#ChannelTopic toggled to: 1
+--------------------------------------------
+New Client [fd]: 5 Is In...
+Passowrd Confirmed !
+Confirmed Username: x
+Confirmed realname: User
+Confirmed Nickname: Bob
+Error: Channel speicifed in TOPIC does not exist !
+Channel's topic is: newTOpuc
+Channel -> #Channel | Key -> 
+Client was added to the existing channel: #Channel
+Error: Only the operator can edit this channel's topic !
+Channel's topic is: newTOpuc
+Error: Only the operator can edit this channel's topic !
+Sign Currently is: +
+Valid Flag: o
+Arg consumed: Bob
+Arg Flags Counter: 1
+o needs an Argument
+Client: 5 was made an operator on this channel !
+--------------------------------------------
+Channel's topic is: Nothing
+Sign Currently is: -
+Valid Flag: t
+#ChannelTopic toggled to: 0
+--------------------------------------------
+New Client [fd]: 6 Is In...
+Passowrd Confirmed !
+Confirmed Username: x
+Confirmed realname: tester
+Confirmed Nickname: Tester
+Channel -> #Channel | Key -> 
+Client was added to the existing channel: #Channel
+Channel's topic is:
+
+
+➜  Internet-Relay-Chat-Cpp- git:(main) ✗ nc localhost port
+PASS xoris
+USER x x x :Xoris
+NICK Xoris
+JOIN #Channel 
+MODE #Channel +t
+TOPIC #Channel :newTOpuc
+TOPIC #channel
+TOPIC #Channel
+MODE #Channel +o Bob
+
+
+➜  Internet-Relay-Chat-Cpp- git:(main) ✗ nc localhost port
+PASS xoris
+USER x x x :User
+NICK Bob  
+JOIN #Channel
+TOPIC #Channel :
+TOPIC #Channel
+TOPIC #Channel :nothing
+TOPIC #Channel :Nothing
+TOPIC #Channel
+MODE #Channel -t
+
+
+➜  Internet-Relay-Chat-Cpp- git:(main) ✗ nc localhost port
+PASS xoris
+USER x x x :tester
+NICK Tester
+JOIN #Channel
+TOPIC #Channel :
+TOPIC #Channel

@@ -205,6 +205,15 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
     }
     else if (_topic[0] == ':')
     {
+        if (it->second.getTopicToggle())
+        {
+            std::set<int>::const_iterator opMember = it->second.getOperators().find(fd);
+            if (opMember == it->second.getOperators().end())
+            {
+                std::cerr << "Error: Only the operator can edit this channel's topic !" << std::endl;
+                return ;
+            }
+        }
         _topic.erase(0, 1);
         if (_topic.empty())
             it->second.setTopic("");
