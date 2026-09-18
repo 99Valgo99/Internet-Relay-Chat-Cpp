@@ -132,295 +132,34 @@ bool Server::handleClientData(int fd)
             std::istringstream stream(wellFormed);
             std::string command;
             stream >> command;
+
             if (command == "PASS")
-            {
-                std::string arg;
-                std::getline(stream, arg);
+                dispatchPass(fd, stream);
 
-                if (arg.empty())
-                {
-                    sendServerReply(fd, 461, "Error: PASS should have one argument at least !");
-                    continue ;
-                }
-                if (!arg.empty() && arg[0] == ' ')
-                    arg.erase(0, 1);
-                if (!arg.empty() && arg[0] == ':')
-                {
-                    arg.erase(0, 1);
-                    validatePass(fd, arg);
-                }
-                else
-                {
-                    if (arg.find(' ') != std::string::npos)
-                    {
-                        sendServerReply(fd, 464, "Error: Password Mismatch !");
-                        continue ;
-                    }
-                    validatePass(fd, arg);
-                }
-            }
             else if (command == "NICK")
-            {
-                std::string arg, leftovers;
-                stream >> arg;
-                if (stream >> leftovers)
-                    sendServerReply(fd, 461, "Error: NICK Should Have one argumet !");
-                else
-                    validateNick(fd, arg);
-            }
+                dispatchNick(fd, stream);
+
             else if (command == "USER")
-            {
-                std::string username, mode, unused, realname;
-                stream >> username >> mode >> unused;
+                dispatchUser(fd, stream);
 
-                if (username.empty() || mode.empty() || unused.empty())
-                {
-                    sendServerReply(fd, 461, "Error: User needs more parameters !");
-                    continue ;
-                }
-                std::getline(stream, realname);
-                if (!realname.empty() && realname[0] == ' ')
-                    realname.erase(0, 1);
-                if (realname.empty() || realname[0] != ':')
-                {
-                    sendServerReply(fd, 461, "Error: USER realname should start with ':' !");
-                    continue ;
-                }
-                else
-                {
-                    realname.erase(0, 1);
-                    validateUser(fd, username, realname);
-                }
-            }
             else if (command == "JOIN")
-            {
-                std::string channelname, keys, leftovers;
-                stream >> channelname >> keys;
-                if (channelname.empty())
-                {
-                    sendServerReply(fd, 461, "Error: JOIN Channel must have a name !");
-                    continue ;
-                }
-                if (channelname == "0")
-                {
-                    exitAllChannels(fd);
-                    continue ;
-                }
-                if (stream >> leftovers)
-                {
-                    sendServerReply(fd, 999, "Error: JOIN should have one argument !");
-                    continue ;
-                }
-                std::vector<std::string> keyholder;
-                size_t start = 0;
-                while (true)
-                {
-                    std::string oneKey;
-                    size_t posComma = keys.find(',', start);
-                    if (posComma == std::string::npos)
-                    {
-                        oneKey = keys.substr(start);
-                        keyholder.push_back(oneKey);
-                        break ;
-                    }
-                    oneKey = keys.substr(start, posComma - start);
-                    keyholder.push_back(oneKey);
-                    start = posComma + 1;
-                }
-                start = 0;
-                size_t key_index = 0;
-                std::string emptyKey;
-                while (true)
-                {
-                    std::string getOneChannel;
-                    size_t posComma = channelname.find(',', start);
-                    if (posComma == std::string::npos)
-                    {
-                        getOneChannel = channelname.substr(start);
-                        if (key_index >= keyholder.size())
-                        {
-                            handleJoin(fd, getOneChannel, emptyKey);
-                            break ;
-                        }
-                        else
-                        {
-                            handleJoin(fd, getOneChannel, keyholder[key_index]);
-                            break ;
-                        }
-                    }
-                    getOneChannel = channelname.substr(start, posComma - start);
-                    if (key_index > keyholder.size())
-                        handleJoin(fd, getOneChannel, emptyKey);
-                    else
-                        handleJoin(fd, getOneChannel, keyholder[key_index]);
-                    start = posComma + 1;
-                    key_index++;
-                }
-            }
+                dispatchJoin(fd, stream);
+
             else if (command == "PRIVMSG")
-            {
-                std::string targets, message;
-                stream >> targets;
-                if (targets.empty())
-                {
-                    sendServerReply(fd, 461, "Error: PRIVMSG Needs more parameters !");
-                    continue ;
-                }
-                std::getline(stream, message);
-                if (!message.empty() && message[0] == ' ')
-                    message.erase(0, 1);
-                if (message.empty() || message[0] != ':')
-                {
-                    sendServerReply(fd, 412, "Error: PRIVMSG second arg format [:msg] !");
-                    continue ;
-                }
-                handlePrvMsg(fd, targets, message);
-            }
+                dispatchPrvMsg(fd, stream);
+            
             else if (command == "KICK")
-            {
-                std::string channelList, usersList, comment;
-                stream >> channelList >> usersList;
-                if (channelList.empty() || usersList.empty())
-                {
-                    sendServerReply(fd, 461, "Error: KICK needs a channel + users to kick !");
-                    continue ;
-                }
-                std::getline(stream, comment);
-                if (!comment.empty() && comment[0] == ' ')
-                    comment.erase(0, 1);
-                if (!comment.empty())
-                {
-                    if (comment[0] == ':')
-                        comment.erase(0, 1);
-                    else
-                    {
-                        sendServerReply(fd, 461, "Error: KICK Comment arg should start with ':' !");
-                        continue ;
-                    }
-                }
-                size_t start = 0;
-                std::vector<std::string> listChannel, listUsers;
-                while (true)
-                {
-                    std::string target;
-                    size_t posComma = channelList.find(',', start);
-                    if (posComma == std::string::npos)
-                    {
-                        target = channelList.substr(start);
-                        listChannel.push_back(target);
-                        break ;
-                    }
-                    target = channelList.substr(start, posComma - start);
-                    listChannel.push_back(target);
-                    start = posComma + 1;
-                }
-                start = 0;
-                while (true)
-                {
-                    std::string target;
-                    size_t posComma = usersList.find(',', start);
-                    if (posComma == std::string::npos)
-                    {
-                        target = usersList.substr(start);
-                        listUsers.push_back(target);
-                        break ;
-                    }
-                    target = usersList.substr(start, posComma - start);
-                    listUsers.push_back(target);
-                    start = posComma + 1;
-                }
-                handleKick(fd, listChannel, listUsers, comment);
-            }
+                dispatchKick(fd, stream);
+
             else if (command == "TOPIC")
-            {
-                std::string channel, topic;
-                stream >> channel;
-                if (channel.empty())
-                {
-                    sendServerReply(fd, 461, "Error: TOPIC must have at least one argument !");
-                    continue ;
-                }
-                std::getline(stream, topic);
-                if (!topic.empty() && topic[0] == ' ')
-                    topic.erase(0, 1);
-                handleTopic(fd, channel, topic);
-            }
+                dispatchTopic(fd, stream);
+
             else if (command == "INVITE")
-            {
-                std::string nickname, channel, leftovers;
-                stream >> nickname >> channel;
-                if (nickname.empty() || channel.empty())
-                {
-                    sendServerReply(fd, 461, "Error: INVITE Malformed input !");
-                    continue ;
-                }
-                std::getline(stream, leftovers);
-                if (!leftovers.empty() && leftovers[0] == ' ')
-                    leftovers.erase(0, 1);
-                if (!leftovers.empty())
-                {
-                    sendServerReply(fd, 999, "Error: INVITE requires only two args <nickname> and <channel> !");
-                    continue ;
-                }
-                handleInvite(fd, nickname, channel);
-            }
+                dispatchInvite(fd, stream);
+            
             else if (command == "MODE")
-            {
-                char sign;
-                size_t threeArgCounter = 0;
-                std::string modeStr, channelModed;
-                stream >> channelModed >> modeStr;
-
-                if (!channelModed.empty() && channelModed[0] != '#')
-                {
-                    sendServerReply(fd, 461, "Error: MODE Needs more arguments !");
-                    continue ;
-                }
-                std::string oneArgVector;
-                std::vector<std::string> argsLeft;
-
-                while (stream >> oneArgVector)
-                    argsLeft.push_back(oneArgVector);
-                for (size_t i = 0; i < modeStr.size(); i++)
-                {
-                    if (modeStr[i] == '-' || modeStr[i] == '+')
-                    {
-                        sign = modeStr[i];
-                        std::cout << "Sign Currently is: " << sign << std::endl;
-                    }
-                    else
-                    {
-                        if (modeStr[i] == 'i' || modeStr[i] == 'k' || modeStr[i] == 'l'
-                            || modeStr[i] == 'o' || modeStr[i] == 't')
-                        {
-                            std::cout << "Valid Flag: " << modeStr[i] << std::endl;
-                            bool needsArgBoolean = needAnArg(sign, modeStr[i]);
-                            if (needsArgBoolean)
-                            {
-                                if (threeArgCounter + 1 > 3)
-                                {
-                                    sendServerReply(fd, 999, "Error: MODE excess in use of flags that need args !");
-                                    continue ;
-                                }
-                                bool argConsumption = getTheArg(argsLeft, threeArgCounter, oneArgVector);
-                                if (!argConsumption)
-                                {
-                                    sendServerReply(fd, 461, "Error: MODE Malformed input !");
-                                    continue ;
-                                }
-                                handleMode(fd, channelModed, sign, modeStr[i], oneArgVector);
-                            }
-                            else
-                            {
-                                std::string empty_arg;
-                                handleMode(fd, channelModed, sign, modeStr[i], empty_arg);
-                            }
-                        }
-                        else
-                            sendServerReply(fd, 472, "Error: Mode Unknown Mode !");
-                    }
-                }
-            }
+                dispatchMode(fd, stream);
+            
             else
                 sendServerReply(fd, 421, "Error: Unkown Command !");
         }

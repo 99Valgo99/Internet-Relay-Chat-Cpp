@@ -56,6 +56,17 @@ class Server {
         bool getTheArg(std::vector<std::string>& argLeft, size_t& index, std::string& consumedArg);
 
         void sendServerReply(int fd, int code, std::string message);
+
+        // dispatchers
+        void dispatchPass(int fd, std::istringstream& stream);
+        void dispatchNick(int fd, std::istringstream& stream);
+        void dispatchUser(int fd, std::istringstream& stream);
+        void dispatchJoin(int fd, std::istringstream& stream);
+        void dispatchPrvMsg(int fd, std::istringstream& steam);
+        void dispatchKick(int fd, std::istringstream& stream);
+        void dispatchTopic(int fd, std::istringstream& stream);
+        void dispatchInvite(int fd, std::istringstream& stream);
+        void dispatchMode(int fd, std::istringstream& stream);
     
     public:
         Server(int port, std::string _password);
