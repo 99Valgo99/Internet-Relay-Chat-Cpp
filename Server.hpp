@@ -53,6 +53,8 @@ class Server {
 
         bool needAnArg(char sign, char flag);
         bool getTheArg(std::vector<std::string>& argLeft, size_t& index, std::string& consumedArg);
+
+        void sendServerReply(int fd, int code, std::string message);
     
     public:
         Server(int port, std::string _password);

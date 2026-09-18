@@ -476,3 +476,11 @@ bool Server::getTheArg(std::vector<std::string>& argLeft, size_t& index, std::st
     index++;
     return true;
 }
+
+void Server::sendServerReply(int fd, int code, std::string message)
+{
+    std::map<int, Client>::iterator it_client = this->clients.find(fd);
+    std::ostringstream reply;
+    reply << "ircserv " << code << " " << it_client->second.nickName << " :" << message;
+    it_client->second.sendBytes.append(reply.str() + "\r\n");
+}
