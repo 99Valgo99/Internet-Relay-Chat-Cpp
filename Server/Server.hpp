@@ -16,8 +16,8 @@
 # include <sstream>
 # include <climits>
 
-# include "Client.hpp"
-# include "Channel.hpp"
+# include "../Client/Client.hpp"
+# include "../Channel/Channel.hpp"
 
 class Server {
 
@@ -31,6 +31,7 @@ class Server {
         void acceptNclient();
         bool spreadMessage(int fd);
         void setupSocket(int port);
+        
         void validatePass(int fd, std::string arg);
         void validateNick(int fd, std::string arg);
         void validateUser(int fd, std::string username, std::string realname);

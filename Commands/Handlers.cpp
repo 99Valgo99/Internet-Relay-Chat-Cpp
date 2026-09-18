@@ -1,8 +1,7 @@
-# include "Server.hpp"
+# include "../Server/Server.hpp"
 
 void Server::exitAllChannels(int fd)
 {
-    bool notMemberOfAny = true;
     for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
     {
         std::set<int>::const_iterator member = it->second.getChannelsMembers().find(fd);
