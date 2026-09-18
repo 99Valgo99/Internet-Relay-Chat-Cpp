@@ -45,7 +45,7 @@ class Server {
         void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
         void handleMode(int fd, std::string channel_, char sign, char flag, std::string arg);
         bool userLimitHelper(Channel& _Channel, std::string arg);
-        void operatorModeHelper(Channel& _Channel, bool& toggle, std::string& arg);
+        void operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::string& arg);
 
         std::string buildSenderPrifix(int fd);
         void msgSendToNick(int fd, std::string target, std::string message);

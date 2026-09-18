@@ -10,7 +10,8 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
 {
     if (target.empty())
     {
-        std::cerr << "ERROR: PRIVMSG does not accept empty target !" << std::endl;
+        // std::cerr << "ERROR: PRIVMSG does not accept empty target !" << std::endl;
+        sendServerReply(fd, 461, "ERROR: PRIVMSG needs more parameters !");
         return ;
     }
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
@@ -23,7 +24,8 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
             return ;
         }
     }
-    std::cout << "Error: No such a client with the nickname:" << target << std::endl;
+    // std::cout << "Error: No such a client with the nickname:" << target << std::endl;
+    sendServerReply(fd, 401, "Error: No such a client with the nickname:");
 }
 
 void Server::msgSendToChannel(int fd, std::string target, std::string message)
@@ -31,13 +33,15 @@ void Server::msgSendToChannel(int fd, std::string target, std::string message)
     std::cout << "Broadcasting to channel: " << target << std::endl;
     if (target.empty())
     {
-        std::cerr << "Error: PRIVMSG does not accept empty target !" << std::endl;
+        // std::cerr << "Error: PRIVMSG does not accept empty target !" << std::endl;
+        sendServerReply(fd, 461, "ERROR: PRIVMSG needs more parameters !");
         return ;
     }
     std::map<std::string, Channel>::iterator it = this->channels.find(target);
     if (it == this->channels.end())
     {
-        std::cerr << "Error: No Channel was found with this name !" << std::endl;
+        // std::cerr << "Error: No Channel was found with this name !" << std::endl;
+        sendServerReply(fd, 404, "Error: No Channel was found with this name !");
         return ;
     }
     else
@@ -46,7 +50,8 @@ void Server::msgSendToChannel(int fd, std::string target, std::string message)
         const std::set<int>& members = it->second.getChannelsMembers();
         if (members.find(fd) == members.end())
         {
-            std::cerr << "Error: The client has not joined this channel !" << std::endl;
+            // std::cerr << "Error: The client has not joined this channel !" << std::endl;
+            sendServerReply(fd, 404, "Error: The client has not joined this channel !");
             return ;
         }
         for (std::set<int>::const_iterator it_members = members.begin(); it_members != members.end(); ++it_members)

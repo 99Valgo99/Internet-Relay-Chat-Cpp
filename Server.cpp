@@ -52,7 +52,7 @@ void Server::run()
         int up = poll(&this->poll_fds[0], poll_fds.size(), -1);
         if (up == -1)
         {
-            std::cerr << "Error" << std::endl;
+            std::cerr << "Internal Server Error: poll() Failed !" << std::endl;
             continue ;
         }
         std::vector<int> needRemove;
@@ -98,7 +98,7 @@ void Server::acceptNclient()
     cl.fd = accept(this->listen_fd, NULL, NULL);
     if (cl.fd == -1)
     {
-        std::cerr << "Error" << std::endl;
+        std::cerr << "Internal Server Error: accept() failed !" << std::endl;
         return ;
     }
     struct pollfd pfd_client;
@@ -139,7 +139,7 @@ bool Server::handleClientData(int fd)
 
                 if (arg.empty())
                 {
-                    std::cerr << "Error: PASS should have one argument at least !" << std::endl;
+                    sendServerReply(fd, 461, "Error: PASS should have one argument at least !");
                     continue ;
                 }
                 if (!arg.empty() && arg[0] == ' ')
@@ -153,7 +153,7 @@ bool Server::handleClientData(int fd)
                 {
                     if (arg.find(' ') != std::string::npos)
                     {
-                        std::cerr << "Error: PASS should have one argument !" << std::endl;
+                        sendServerReply(fd, 464, "Error: Password Mismatch !");
                         continue ;
                     }
                     validatePass(fd, arg);
@@ -164,7 +164,7 @@ bool Server::handleClientData(int fd)
                 std::string arg, leftovers;
                 stream >> arg;
                 if (stream >> leftovers)
-                    std::cerr << "Error: NICK should have one argument" << std::endl;
+                    sendServerReply(fd, 461, "Error: NICK Should Have one argumet !");
                 else
                     validateNick(fd, arg);
             }
@@ -175,7 +175,7 @@ bool Server::handleClientData(int fd)
 
                 if (username.empty() || mode.empty() || unused.empty())
                 {
-                    std::cerr << "Error: USER command requires [username, mode, unused, realname]" << std::endl;
+                    sendServerReply(fd, 461, "Error: User needs more parameters !");
                     continue ;
                 }
                 std::getline(stream, realname);
@@ -183,7 +183,7 @@ bool Server::handleClientData(int fd)
                     realname.erase(0, 1);
                 if (realname.empty() || realname[0] != ':')
                 {
-                    std::cerr << "Error: USER realname argument should start with ':'" << std::endl;
+                    sendServerReply(fd, 461, "Error: USER realname should start with ':' !");
                     continue ;
                 }
                 else
@@ -198,7 +198,7 @@ bool Server::handleClientData(int fd)
                 stream >> channelname >> keys;
                 if (channelname.empty())
                 {
-                    std::cerr << "Error: Channel must have a name !" << std::endl;
+                    sendServerReply(fd, 461, "Error: JOIN Channel must have a name !");
                     continue ;
                 }
                 if (channelname == "0")
@@ -208,7 +208,7 @@ bool Server::handleClientData(int fd)
                 }
                 if (stream >> leftovers)
                 {
-                    std::cerr << "Error: JOIN should have one argument" << std::endl;
+                    sendServerReply(fd, 999, "Error: JOIN should have one argument !");
                     continue ;
                 }
                 std::vector<std::string> keyholder;
@@ -263,7 +263,7 @@ bool Server::handleClientData(int fd)
                 stream >> targets;
                 if (targets.empty())
                 {
-                    std::cerr << "Error: PRIVMSG should have at least one argument !" << std::endl;
+                    sendServerReply(fd, 461, "Error: PRIVMSG Needs more parameters !");
                     continue ;
                 }
                 std::getline(stream, message);
@@ -271,7 +271,7 @@ bool Server::handleClientData(int fd)
                     message.erase(0, 1);
                 if (message.empty() || message[0] != ':')
                 {
-                    std::cerr << "Error: PRIVMGS second arg format [:msg] !" << std::endl;
+                    sendServerReply(fd, 412, "Error: PRIVMSG second arg format [:msg] !");
                     continue ;
                 }
                 handlePrvMsg(fd, targets, message);
@@ -282,7 +282,7 @@ bool Server::handleClientData(int fd)
                 stream >> channelList >> usersList;
                 if (channelList.empty() || usersList.empty())
                 {
-                    std::cerr << "Error: KICK needs a channel + users to kick !" << std::endl;
+                    sendServerReply(fd, 461, "Error: KICK needs a channel + users to kick !");
                     continue ;
                 }
                 std::getline(stream, comment);
@@ -294,7 +294,7 @@ bool Server::handleClientData(int fd)
                         comment.erase(0, 1);
                     else
                     {
-                        std::cerr << "Error: Comment argument should start with ':'" << std::endl;
+                        sendServerReply(fd, 461, "Error: KICK Comment arg should start with ':' !");
                         continue ;
                     }
                 }
@@ -337,7 +337,7 @@ bool Server::handleClientData(int fd)
                 stream >> channel;
                 if (channel.empty())
                 {
-                    std::cerr << "Error: TOPIC must have at least one argument !" << std::endl;
+                    sendServerReply(fd, 461, "Error: TOPIC must have at least one argument !");
                     continue ;
                 }
                 std::getline(stream, topic);
@@ -351,7 +351,7 @@ bool Server::handleClientData(int fd)
                 stream >> nickname >> channel;
                 if (nickname.empty() || channel.empty())
                 {
-                    std::cerr << "Error: Malformed argument for INVITE" << std::endl;
+                    sendServerReply(fd, 461, "Error: INVITE Malformed input !");
                     continue ;
                 }
                 std::getline(stream, leftovers);
@@ -359,7 +359,7 @@ bool Server::handleClientData(int fd)
                     leftovers.erase(0, 1);
                 if (!leftovers.empty())
                 {
-                    std::cerr << "Error: INVITE requires only two args <nickname> and <channel> !" << std::endl;
+                    sendServerReply(fd, 999, "Error: INVITE requires only two args <nickname> and <channel> !");
                     continue ;
                 }
                 handleInvite(fd, nickname, channel);
@@ -373,7 +373,7 @@ bool Server::handleClientData(int fd)
 
                 if (!channelModed.empty() && channelModed[0] != '#')
                 {
-                    std::cerr << "Error: MODE Malformed input !" << std::endl;
+                    sendServerReply(fd, 461, "Error: MODE Needs more arguments !");
                     continue ;
                 }
                 std::string oneArgVector;
@@ -399,17 +399,15 @@ bool Server::handleClientData(int fd)
                             {
                                 if (threeArgCounter + 1 > 3)
                                 {
-                                    std::cerr << "Error: MODE Malformed input" << std::endl;
+                                    sendServerReply(fd, 999, "Error: MODE excess in use of flags that need args !");
                                     continue ;
                                 }
                                 bool argConsumption = getTheArg(argsLeft, threeArgCounter, oneArgVector);
                                 if (!argConsumption)
                                 {
-                                    std::cerr << "Error: Mode Malformed input" << std::endl;
+                                    sendServerReply(fd, 461, "Error: MODE Malformed input !");
                                     continue ;
                                 }
-                                std::cout << "Arg Flags Counter: " << threeArgCounter << std::endl;
-                                std::cout << modeStr[i] << " needs an Argument" << std::endl;
                                 handleMode(fd, channelModed, sign, modeStr[i], oneArgVector);
                             }
                             else
@@ -417,18 +415,14 @@ bool Server::handleClientData(int fd)
                                 std::string empty_arg;
                                 handleMode(fd, channelModed, sign, modeStr[i], empty_arg);
                             }
-                            std::cout << "--------------------------------------------\n";
                         }
                         else
-                            std::cout << "Invalide Flag: " << modeStr[i] << std::endl;
+                            sendServerReply(fd, 472, "Error: Mode Unknown Mode !");
                     }
                 }
             }
             else
-            {
-                std::cerr << "Error: Unrecognized Command" << std::endl;
-                // for now, later i will see into adding Error Codes.
-            }
+                sendServerReply(fd, 421, "Error: Unkown Command !");
         }
         return true;
     }

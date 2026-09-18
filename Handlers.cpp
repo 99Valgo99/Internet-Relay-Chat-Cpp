@@ -12,24 +12,21 @@ void Server::exitAllChannels(int fd)
         {
             it->second.removeClientsFromChannel(fd);
             it->second.removeOperator(fd);
-            notMemberOfAny = false;
             std::cout << "A client has left " << it->second.getChannelsName() << std::endl;
         }
     }
-    if (notMemberOfAny == true)
-        std::cout << "The client is not a memebre of any channel !" << std::endl;
 }
 
 void Server::handleJoin(int fd, std::string nameChannel, std::string key)
 {
     if (!clients[fd].isClientAuth())
     {
-        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
     if (nameChannel.empty() || nameChannel[0] != '#')
     {
-        std::cerr << "Error: A channel should always start with '#' !" << std::endl;
+        sendServerReply(fd, 403, "Error: JOIN No such a channel !");
         return ;
     }
     std::cout << "Channel -> " << nameChannel << " | Key -> " << key << std::endl;
@@ -38,7 +35,7 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
     {
         if (!key.empty())
         {
-            std::cerr << "Error: Malformed JOIN argument, to set a key for a channel, use MODE #example +k" << std::endl;
+            sendServerReply(fd, 999, "Error: Malformed JOIN argument, to set a key for a channel, use MODE #example +k");
             return ;
         }
         Channel newChannel(nameChannel, fd);
@@ -53,7 +50,7 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
         std::set<int>::const_iterator invitedMemb = it->second.getInvitedMembers().find(fd);
         if (invitedMemb == it->second.getInvitedMembers().end())
         {
-            std::cerr << "Error: The channel is Invite-Only, and the sender was not invited !" << std::endl;
+            sendServerReply(fd, 473, "Error: The channel is Invite-Only, and the sender was not invited !");
             return ;
         }
     }
@@ -61,22 +58,21 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
     {
         if (it->second.getUserLimit() != -1 && it->second.getChannelsMembers().size() >= (size_t)it->second.getUserLimit())
         {
-            std::cerr << "Error: Joining would exceed the user limit number of this channel !" << std::endl;
+            sendServerReply(fd, 471, "Error: Joining would exceed the user limit number of this channel !");
             return ; 
         }
         it->second.addClientsToChannel(fd);
         std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
     }
     else
-        std::cerr << "This Channel needs a password key to join it !" << std::endl;
+        sendServerReply(fd, 475, "This Channel needs a password key to join it !");
 }
 
 void Server::handlePrvMsg(int fd, std::string targets, std::string message)
 {
-    std::cout << "PRVMSG was succesfully called !" << std::endl;
     if (!clients[fd].isClientAuth())
     {
-        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
     
@@ -107,26 +103,31 @@ void Server::handlePrvMsg(int fd, std::string targets, std::string message)
 
 void Server::kickOneClient(int fd, std::string listChannel, std::string listUser)
 {
-    if (!listChannel.empty() && listChannel[0] != '#')
+    if (!listChannel.empty())
     {
-        std::cerr << "Error: Malformed Channel syntax !" << std::endl;
+        sendServerReply(fd, 403, "Error: KICK No such a channel !");
+        return ;
+    }
+    if (listChannel[0] != '#')
+    {
+        sendServerReply(fd, -1, "Error: KICK malformed channel's name !");
         return ;
     }
     if (listChannel.empty() || listUser.empty())
     {
-        std::cerr << "Error: Malformed Kick input" << std::endl;
+        sendServerReply(fd, 461, "Error: KICK needs more parameters !");
         return ;
     }
     std::map<std::string, Channel>::iterator channel_it = channels.find(listChannel);
     if (channel_it == channels.end())
     {
-        std::cerr << "Error: " << listChannel << " was not created !" << std::endl;
+        sendServerReply(fd, 403, "Error: KICK No such a channel !");
         return ;
     }
     std::set<int>::const_iterator isOp = channel_it->second.getOperators().find(fd);
     if (isOp == channel_it->second.getOperators().end())
     {
-        std::cerr << "Error: The kicker is not an operator of the " << listChannel << " channel !" << std::endl;
+        sendServerReply(fd, 482, "Error: KICK The kicker is not an operator !");
         return ;
     }
     int user_fd = -1;
@@ -137,13 +138,13 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
     }
     if (user_fd == -1)
     {
-        std::cerr << "Error: Client does not exist !" << std::endl;
+        sendServerReply(fd, 401, "Error: KICK Nickname does not exist !");
         return ;
     }
     std::set<int>::const_iterator member = channel_it->second.getChannelsMembers().find(user_fd);
     if (member == channel_it->second.getChannelsMembers().end())
     {
-        std::cerr << "Error: " << listUser << " is not part of the channel " << listChannel << "!" << std::endl;
+        sendServerReply(fd, 441, "Error: KICK User not in channel !");
         return ;
     }
     else
@@ -159,12 +160,12 @@ void Server::handleKick(int fd, std::vector<std::string> listChannel, std::vecto
     (void)comment;
     if (!clients[fd].isClientAuth())
     {
-        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
     if (!(listChannel.size() == 1 || listChannel.size() == listUsers.size()))
     {
-        std::cerr << "Error: Malformed input for Kick !" << std::endl;
+        sendServerReply(fd, 461, "Error: KICK Needs more parameters !");
         return ;
     }
     if (listChannel.size() == 1)
@@ -183,19 +184,19 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
 {
     if (!clients[fd].isClientAuth())
     {
-        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
     std::map<std::string, Channel>::iterator it = this->channels.find(channelT);
     if (it == channels.end())
     {
-        std::cerr << "Error: Channel speicifed in TOPIC does not exist !" << std::endl;
+        sendServerReply(fd, 403, "Error: TOPIC No such a channel !");
         return ;
     }
     std::set<int>::const_iterator member = it->second.getChannelsMembers().find(fd);
     if (member == it->second.getChannelsMembers().end())
     {
-        std::cerr << "Error: This Client is not a member in this Channel" << std::endl;
+        sendServerReply(fd, 442, "Error: TOPIC This Client is not a member in this Channel !");
         return ;
     }
     if (_topic.empty())
@@ -210,7 +211,7 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
             std::set<int>::const_iterator opMember = it->second.getOperators().find(fd);
             if (opMember == it->second.getOperators().end())
             {
-                std::cerr << "Error: Only the operator can edit this channel's topic !" << std::endl;
+                sendServerReply(fd, 482, "Error: TOPIC Client must be an operator !");
                 return ;
             }
         }
@@ -222,7 +223,7 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
     }
     else
     {
-        std::cerr << "Error: Malformed input for TOPIC" << std::endl;
+        sendServerReply(fd, -1, "Error: TOPIC Malformed input !");
         return ;
     }
 }
@@ -231,17 +232,17 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
 {
     if (!clients[fd].isClientAuth())
     {
-        std::cerr << "Error: You are not authenticated yet !" << std::endl;
+        sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
     if (_nickname[0] == '#')
     {
-        std::cerr << "Error: Invalid Nickname !" << std::endl;
+        sendServerReply(fd, 401, "Error: INVITE Invalid Nickname !");
         return ;
     }
     if (_channel[0] != '#')
     {
-        std::cerr << "Error: Invalid Channel's name !" << std::endl;
+        sendServerReply(fd, 403, "Error: INVITE No such a channel !");
         return ;
     }
     int user_fd = -1;
@@ -252,14 +253,13 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
     }
     if (user_fd == -1)
     {
-        std::cerr << "Error: The client with this nickname does not exist !" << std::endl;
+        sendServerReply(fd, 401, "Error: INVITE No Such a nickname !");
         return ;
     }
     std::map<std::string, Channel>::iterator it = channels.find(_channel);
     if (it == channels.end())
     {
-        std::cout << "Sending the invitation to: " << _nickname << std::endl;
-        // broadcast it here later...
+        sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
         return ;
     }
     else
@@ -267,7 +267,8 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         std::set<int>::const_iterator inviter_member = it->second.getChannelsMembers().find(fd);
         if (inviter_member == it->second.getChannelsMembers().end())
         {
-            std::cerr << "Error: The inviter client is not a memeber of this channel !" << std::endl;
+            // std::cerr << "Error: The inviter client is not a memeber of this channel !" << std::endl;
+            sendServerReply(fd, 442, "Error: INVITE Inviter is not a member of this channel !");
             return ;
         }
         std::set<int>::const_iterator member = it->second.getChannelsMembers().find(user_fd);
@@ -275,12 +276,12 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         {
             std::cout << "Inviting " << _nickname << std::endl;
             it->second.addInvited(user_fd);
-            // broadcast here later..
+            sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
             return ;
         }
         else
         {
-            std::cout << "Error: the invited client is already a member of this channel !" << std::endl;
+            sendServerReply(fd, 443, "Error: INVITE the invited client is already a member of this channel !");
             return ;
         }
     }
@@ -301,7 +302,7 @@ bool Server::userLimitHelper(Channel& _Channel, std::string arg)
     return true;
 }
 
-void Server::operatorModeHelper(Channel& _Channel, bool& toggle, std::string& arg)
+void Server::operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::string& arg)
 {
     int user_fd = -1;
     for (std::map<int, Client>::iterator client_it = clients.begin(); client_it != clients.end(); ++client_it)
@@ -314,13 +315,13 @@ void Server::operatorModeHelper(Channel& _Channel, bool& toggle, std::string& ar
     }
     if (user_fd == -1)
     {
-        std::cerr << "Error: MODE Client does not exist !" << std::endl;
+        sendServerReply(fd, 401, "Error: MODE NO such a nickname !");
         return ;
     }
     std::set<int>::const_iterator member_it = _Channel.getChannelsMembers().find(user_fd);
     if (member_it == _Channel.getChannelsMembers().end())
     {
-        std::cerr << "Error: Mode the provided Client is not a member of this channel !" << std::endl;
+        sendServerReply(fd, 442, "Error: MODE client is not a member of this channel !");
         return ;
     }
     if (toggle)
@@ -334,16 +335,15 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
     std::map<std::string, Channel>::iterator channel_it = channels.find(channel_);
     if (channel_it == channels.end())
     {
-        std::cerr << "ERROR: MODE channel does not exist !" << std::endl;
+        sendServerReply(fd, 403, "Error: MODE No such a channel !");
         return ;
     }
     std::set<int>::const_iterator send_it = channel_it->second.getOperators().find(fd);
     if (send_it == channel_it->second.getOperators().end())
     {
-        std::cerr << "ERROR: MODE The sender is not an operator in this channel !" << std::endl;
+        sendServerReply(fd, 482, "Error: MODE Client must be an operator !");
         return ;
     }
-    // Need to verify if a normal client can send flags even if he is not an operator
     bool toggle = false;
     if (sign == '+') toggle = true;
     else toggle = false;
@@ -363,7 +363,7 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
             bool invalid = userLimitHelper(channel_it->second, arg);
             if (!invalid)
             {
-                std::cerr << "Error: MODE invalid argument for l flag" << std::endl;
+                sendServerReply(fd, 461, "Error: MODE invalid argument for l flag !");
                 return ;
             }
         }
@@ -375,6 +375,6 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
                 channel_it->second.setChannelPassword(arg);
         }
         else if (flag == 'o')
-            operatorModeHelper(channel_it->second, toggle, arg);
+            operatorModeHelper(fd, channel_it->second, toggle, arg);
     }
 }

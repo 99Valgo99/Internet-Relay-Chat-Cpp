@@ -2,16 +2,17 @@
 
 void Server::validatePass(int fd, std::string arg)
 {
-    if (arg == this->password)
+    if (clients[fd].validPass)
     {
-        clients[fd].validPass = true;
-        std::cout << "Passowrd Confirmed !" << std::endl;
+        sendServerReply(fd, 462, "Error: Client already registered !");
+        return ;
     }
+    if (arg == this->password)
+        clients[fd].validPass = true;
     else
     {
-        std::cerr << "Error: Wrong Password" << std::endl;
-        return ; // added
-        // to develop more...
+        sendServerReply(fd, 464, "Error: Password Mismatch !");
+        return ;
     }
 }
 
@@ -19,23 +20,21 @@ void Server::validateUser(int fd, std::string username, std::string realname)
 {
     if (!clients[fd].userName.empty())
     {
-        std::cerr << "Error: Client Has Already Issued An USER Command !" << std::endl;
+        sendServerReply(fd, 462, "Error: Client already issued an USER Command !");
         return ;
     }
     if (!clients[fd].validPass)
     {
-        std::cerr << "Error, Needs a password before using USER: PASS ****" << std::endl;
+        sendServerReply(fd, 451, "Error: Client has not registered yet !");
         return ;
     }
     if (username.empty())
     {
-        std::cerr << "No Username Provided, Expected Format: USER username mode unused :realname" << std::endl;
+        sendServerReply(fd, 461, "Error: USER needs more parameters !");
         return ;
     }
     clients[fd].userName = username;
     clients[fd].realName = realname;
-    std::cout << "Confirmed Username: " << clients[fd].userName << std::endl;
-    std::cout << "Confirmed realname: " << clients[fd].realName << std::endl;
 }
 
 void Server::validateNick(int fd, std::string arg)
@@ -47,7 +46,7 @@ void Server::validateNick(int fd, std::string arg)
     }
     if (arg.empty())
     {
-        std::cerr << "No Nickname Provided, Expected Format: NICK nickname" << std::endl;
+        sendServerReply(fd, 431, "Error: No Nickname Provided !");
         return ;
     }
     if (arg[0] == '#')
@@ -61,10 +60,9 @@ void Server::validateNick(int fd, std::string arg)
             continue ;
         if (it->second.nickName == arg)
         {
-            std::cerr << "Sorry ! Nickname Is Already Taken, Chose Something Else" << std::endl;
+            sendServerReply(fd, 433, "Nickname is already taken ! chose something else");
             return ;
         }
     }
     clients[fd].nickName = arg;
-    std::cout << "Confirmed Nickname: " << clients[fd].nickName << std::endl;
 }
