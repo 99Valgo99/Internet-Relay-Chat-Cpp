@@ -60,6 +60,7 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
         }
         it->second.addClientsToChannel(fd);
         sendChanneljoin(fd, it->second);
+        broadcastJoin(fd, it->second);
     }
     else
         sendServerReply(fd, 475, "This Channel needs a password key to join it !");

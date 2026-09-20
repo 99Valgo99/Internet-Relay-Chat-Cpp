@@ -106,3 +106,15 @@ void Server::invitationMsg(int sender, int invited, std::string channelname)
     std::string invMsg = clients[sender].nickName + "!" + clients[sender].userName + "@localhost" + " INVITE " + clients[invited].nickName + " " + channelname;
     sendServerReply(invited, 0, invMsg);
 }
+
+void Server::broadcastJoin(int joined, Channel& channel)
+{
+    std::string joinMsg = clients[joined].nickName + "!" + clients[joined].userName + "@localhost" + " JOIN " + channel.getChannelsName();
+    
+    for (std::set<int>::iterator members = channel.getChannelsMembers().begin(); members != channel.getChannelsMembers().end(); ++members)
+    {
+        if (*members == joined)
+            continue;
+        sendServerReply(*members, 0, joinMsg);
+    }
+}
