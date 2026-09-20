@@ -2,8 +2,8 @@
 
 ### In progress — success replies:
 
-* Registration welcome sequence (001-004) — design just settled, not yet written
-* Nick-change confirmation — same, design settled, not written
+* Registration welcome sequence (001-004) — design just settled, not yet written (Done)
+* Nick-change confirmation — same, design settled, not written (Done)
 * JOIN success sequence (332/331 topic, 353/366 member list)
 * INVITE success (341 RPL_INVITING)
 

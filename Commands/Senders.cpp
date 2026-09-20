@@ -89,3 +89,14 @@ void Server::sendChangeNick(int fd, std::string arg, std::string oldNickname)
     std::string changeMsg = ":" + oldNickname + "!" + clients[fd].userName + "@localhost " + "NICK " + arg;
     sendServerReply(fd, 0, changeMsg);
 }
+
+void Server::sendChanneljoin(int fd, Channel& channel)
+{
+    std::string joinMsg = "Welcome to " + channel.getChannelsName();
+    sendServerReply(fd, 332, joinMsg);
+    if (!channel.getTopic().empty())
+    {
+        std::string topicmsg = "The channel's Topic is: " + channel.getTopic();
+        sendServerReply(fd, 332, topicmsg);
+    }
+}

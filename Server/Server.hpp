@@ -54,6 +54,7 @@ class Server {
         // send + broadcast
         void sendWelcome(int fd);
         std::string buildSenderPrifix(int fd);
+        void sendChanneljoin(int fd, Channel& channel);
         void sendServerReply(int fd, int code, std::string message);
         void msgSendToChannel(int fd, std::string target, std::string message);
         void msgSendToNick(int fd, std::string target, std::string message);

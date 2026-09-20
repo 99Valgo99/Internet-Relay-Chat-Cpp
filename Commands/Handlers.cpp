@@ -23,12 +23,11 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
         sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
-    if (nameChannel.empty() || nameChannel[0] != '#' || nameChannel[0] != '&')
+    if (nameChannel.empty() || (nameChannel[0] != '#' && nameChannel[0] != '&'))
     {
         sendServerReply(fd, 403, "Error: JOIN No such a channel !");
         return ;
     }
-    std::cout << "Channel -> " << nameChannel << " | Key -> " << key << std::endl;
     std::map<std::string, Channel>::iterator it = channels.find(nameChannel);
     if (it == channels.end())
     {
@@ -39,9 +38,8 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
         }
         Channel newChannel(nameChannel, fd);
         std::set<int> ops = newChannel.getOperators();
-        std::cout << "Channel's first Operator/Creator: " << this->clients[*ops.begin()].nickName << std::endl;
         this->channels.insert(std::make_pair(nameChannel, newChannel));
-        std::cout << "Channel was created and client was added to channel: " << nameChannel << std::endl;
+        sendChanneljoin(fd, newChannel);
         return ;
     }
     if (it->second.getInviteToggle())
@@ -61,7 +59,7 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
             return ; 
         }
         it->second.addClientsToChannel(fd);
-        std::cout << "Client was added to the existing channel: " << nameChannel << std::endl;
+        sendChanneljoin(fd, it->second);
     }
     else
         sendServerReply(fd, 475, "This Channel needs a password key to join it !");
