@@ -118,3 +118,14 @@ void Server::broadcastJoin(int joined, Channel& channel)
         sendServerReply(*members, 0, joinMsg);
     }
 }
+
+void Server::broadcastExit(int clientLeft, Channel& channel)
+{
+    for (std::set<int>::iterator members = channel.getChannelsMembers().begin(); members != channel.getChannelsMembers().end(); ++members) // Hmmmm, no Const?
+    {
+        if (*members == clientLeft)
+            continue ;
+        std::string exitMsg = clients[clientLeft].nickName + "!" + clients[clientLeft].userName + "@localhost" + " JOIN 0 " + channel.getChannelsName();
+        sendServerReply(*members, 0, exitMsg);
+    }
+}

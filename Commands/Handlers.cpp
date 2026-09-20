@@ -11,7 +11,7 @@ void Server::exitAllChannels(int fd)
         {
             it->second.removeClientsFromChannel(fd);
             it->second.removeOperator(fd);
-            std::cout << "A client has left " << it->second.getChannelsName() << std::endl;
+            broadcastExit(fd, it->second);
         }
     }
 }

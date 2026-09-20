@@ -35,7 +35,6 @@ const std::set<int>& Channel::getOperators() const {
 }
 
 void Channel::addOperators(int fd) {
-    std::cout << "Client: " << fd << " was made an operator on this channel !" << std::endl;
     this->operators.insert(fd);
 }
 
@@ -53,18 +52,15 @@ const std::string& Channel::getTopic() const {
 
 void Channel::removeOperator(int fd)
 {
-    std::cout << "Client: " << fd << " is no longer an operator on this channel !" << std::endl;
     this->operators.erase(fd);
 }
 
 void Channel::toggleInvite(bool toggle) {
     this->inviteOnly = toggle;
-    std::cout << this->channelsName << "Invite toggled to: " << toggle << std::endl;
 }
 
 void Channel::toggleTopic(bool toggle) {
     this->topicToggle = toggle;
-    std::cout << this->channelsName << "Topic toggled to: " << toggle << std::endl;
 }
 
 const bool& Channel::getInviteToggle() const {
@@ -76,7 +72,6 @@ const bool& Channel::getTopicToggle() const {
 }
 
 void Channel::setUserLimit(long limit) {
-    std::cout << "Setting user limit at: " << limit << " for Channel: " << this->channelsName << std::endl;
     this->userLimit = limit;
 }
 
@@ -85,7 +80,6 @@ const long& Channel::getUserLimit() const {
 }
 
 void Channel::setChannelPassword(std::string _password) {
-    std::cout << "Password: " << _password << " is set for channel: " << this->channelsName << std::endl;
     this->password = _password;
 }
 

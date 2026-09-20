@@ -9,7 +9,7 @@
 
 ### Working On:
 
-* Universal channel-broadcast function (JOIN confirmation to channel, KICK notification, JOIN 0/PART notification)
+* Universal channel-broadcast function (JOIN confirmation to channel (Done), KICK notification, JOIN 0/PART notification)
 * KICK's comment argument — parsed but unused, needs wiring into its eventual broadcast
 * Hostname placeholder decision ("localhost" vs real IP) (To leave as is)
 * Channel name case-insensitivity fix

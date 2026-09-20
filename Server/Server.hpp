@@ -61,6 +61,7 @@ class Server {
         void msgSendToNick(int fd, std::string target, std::string message);
         void sendChangeNick(int fd, std::string arg, std::string oldNickname);
         void invitationMsg(int sender, int invited, std::string channelname);
+        void broadcastExit(int clientLeft, Channel& channel);
 
         // mode helpers
         bool needAnArg(char sign, char flag);
