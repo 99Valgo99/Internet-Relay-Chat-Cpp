@@ -198,7 +198,8 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
     }
     if (_topic.empty())
     {
-        std::cout << "Channel's topic is: " << it->second.getTopic() << std::endl;
+        std::string topicmsg = "The channel's Topic is: " + it->second.getTopic();
+        sendServerReply(fd, 332, topicmsg);
         return ;
     }
     else if (_topic[0] == ':')
@@ -257,6 +258,7 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
     if (it == channels.end())
     {
         sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
+        invitationMsg(fd, user_fd, _channel);
         return ;
     }
     else
@@ -270,9 +272,9 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         std::set<int>::const_iterator member = it->second.getChannelsMembers().find(user_fd);
         if (member == it->second.getChannelsMembers().end())
         {
-            std::cout << "Inviting " << _nickname << std::endl;
             it->second.addInvited(user_fd);
             sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
+            invitationMsg(fd, user_fd, it->second.getChannelsName());
             return ;
         }
         else

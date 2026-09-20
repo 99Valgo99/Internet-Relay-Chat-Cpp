@@ -86,7 +86,7 @@ void Server::sendWelcome(int fd)
 
 void Server::sendChangeNick(int fd, std::string arg, std::string oldNickname)
 {
-    std::string changeMsg = ":" + oldNickname + "!" + clients[fd].userName + "@localhost " + "NICK " + arg;
+    std::string changeMsg = oldNickname + "!" + clients[fd].userName + "@localhost " + "NICK " + arg;
     sendServerReply(fd, 0, changeMsg);
 }
 
@@ -99,4 +99,10 @@ void Server::sendChanneljoin(int fd, Channel& channel)
         std::string topicmsg = "The channel's Topic is: " + channel.getTopic();
         sendServerReply(fd, 332, topicmsg);
     }
+}
+
+void Server::invitationMsg(int sender, int invited, std::string channelname)
+{
+    std::string invMsg = clients[sender].nickName + "!" + clients[sender].userName + "@localhost" + " INVITE " + clients[invited].nickName + " " + channelname;
+    sendServerReply(invited, 0, invMsg);
 }
