@@ -46,7 +46,7 @@ class Server {
         void handleTopic(int fd, std::string channelT, std::string _topic);
         void handlePrvMsg(int fd, std::string targets, std::string message);
         void handleInvite(int fd, std::string _nickname, std::string _channel);
-        void kickOneClient(int fd, std::string listChannel, std::string listUser);
+        void kickOneClient(int fd, std::string listChannel, std::string listUser, std::string comment);
         void operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::string& arg);
         void handleMode(int fd, std::string channel_, char sign, char flag, std::string arg);
         void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
@@ -62,6 +62,7 @@ class Server {
         void sendChangeNick(int fd, std::string arg, std::string oldNickname);
         void invitationMsg(int sender, int invited, std::string channelname);
         void broadcastExit(int clientLeft, Channel& channel);
+        void broadcastKick(int kicker, int kicked, Channel& channel, std::string comment);
 
         // mode helpers
         bool needAnArg(char sign, char flag);

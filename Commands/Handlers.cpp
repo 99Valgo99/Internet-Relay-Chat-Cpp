@@ -99,9 +99,9 @@ void Server::handlePrvMsg(int fd, std::string targets, std::string message)
 }
 
 
-void Server::kickOneClient(int fd, std::string listChannel, std::string listUser)
+void Server::kickOneClient(int fd, std::string listChannel, std::string listUser, std::string comment)
 {
-    if (!listChannel.empty())
+    if (listChannel.empty())
     {
         sendServerReply(fd, 403, "Error: KICK No such a channel !");
         return ;
@@ -146,7 +146,11 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
         return ;
     }
     else
+    {
+        broadcastKick(fd, *member, channel_it->second, comment); // swap these to check the kick bug of sending msg to the kicked user...
         channel_it->second.removeClientsFromChannel(*member);
+        // broadcast the kicking here...
+    }
     std::set<int>::const_iterator opMember = channel_it->second.getOperators().find(user_fd);
     if (opMember != channel_it->second.getOperators().end())
         channel_it->second.removeOperator(*opMember);
@@ -155,7 +159,6 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
 
 void Server::handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment)
 {
-    (void)comment;
     if (!clients[fd].isClientAuth())
     {
         sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
@@ -169,12 +172,12 @@ void Server::handleKick(int fd, std::vector<std::string> listChannel, std::vecto
     if (listChannel.size() == 1)
     {
         for (size_t index = 0; index < listUsers.size(); index++)
-            kickOneClient(fd, listChannel[0], listUsers[index]);
+            kickOneClient(fd, listChannel[0], listUsers[index], comment);
     }
     else
     {
         for (size_t index = 0; index < listChannel.size(); index++)
-            kickOneClient(fd, listChannel[index], listUsers[index]);
+            kickOneClient(fd, listChannel[index], listUsers[index], comment);
     }
 }
 
