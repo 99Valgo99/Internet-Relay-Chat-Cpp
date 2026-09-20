@@ -1,0 +1,17 @@
+## Pending work
+
+### In progress — success replies:
+
+* Registration welcome sequence (001-004) — design just settled, not yet written
+* Nick-change confirmation — same, design settled, not written
+* JOIN success sequence (332/331 topic, 353/366 member list)
+* INVITE success (341 RPL_INVITING)
+
+### Not yet started:
+
+* Universal channel-broadcast function (JOIN confirmation to channel, KICK notification, JOIN 0/PART notification)
+* KICK's comment argument — parsed but unused, needs wiring into its eventual broadcast
+* Hostname placeholder decision ("localhost" vs real IP)
+* Channel name case-insensitivity fix
+* PRIVMSG embedded \r\n injection check
+* Real reference client testing (WeeChat/irssi/HexChat) — haven't touched this at all yet, and it's arguably the most important remaining item since it validates everything else
