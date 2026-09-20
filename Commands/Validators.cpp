@@ -35,6 +35,8 @@ void Server::validateUser(int fd, std::string username, std::string realname)
     }
     clients[fd].userName = username;
     clients[fd].realName = realname;
+    if (clients[fd].isClientAuth())
+        sendWelcome(fd);
 }
 
 void Server::validateNick(int fd, std::string arg)
@@ -49,7 +51,7 @@ void Server::validateNick(int fd, std::string arg)
         sendServerReply(fd, 431, "Error: No Nickname Provided !");
         return ;
     }
-    if (arg[0] == '#')
+    if (arg[0] == '#' || arg[0] == '&')
     {
         sendServerReply(fd, 999, "Error: Can't start your nickname with '#', only channels do !");
         return ;
@@ -64,6 +66,7 @@ void Server::validateNick(int fd, std::string arg)
             return ;
         }
     }
+    std::string oldNickname = clients[fd].nickName;
     bool alreadyAuth = clients[fd].isClientAuth();
     clients[fd].nickName = arg;
     bool currAuth = clients[fd].isClientAuth();
@@ -71,5 +74,5 @@ void Server::validateNick(int fd, std::string arg)
     if (!alreadyAuth && currAuth)
         sendWelcome(fd);
     else if (alreadyAuth)
-        sendchangeNick(fd, arg);
+        sendChangeNick(fd, arg, oldNickname);
 }

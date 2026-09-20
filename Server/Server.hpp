@@ -41,21 +41,23 @@ class Server {
         // command handlers
         void exitAllChannels(int fd);
         bool handleClientData(int fd);
+        bool userLimitHelper(Channel& _Channel, std::string arg);
         void handleJoin(int fd, std::string nameChannel, std::string key);
         void handleTopic(int fd, std::string channelT, std::string _topic);
         void handlePrvMsg(int fd, std::string targets, std::string message);
         void handleInvite(int fd, std::string _nickname, std::string _channel);
         void kickOneClient(int fd, std::string listChannel, std::string listUser);
-        void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
-        void handleMode(int fd, std::string channel_, char sign, char flag, std::string arg);
-        bool userLimitHelper(Channel& _Channel, std::string arg);
         void operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::string& arg);
+        void handleMode(int fd, std::string channel_, char sign, char flag, std::string arg);
+        void handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment);
 
         // send + broadcast
+        void sendWelcome(int fd);
         std::string buildSenderPrifix(int fd);
-        void msgSendToNick(int fd, std::string target, std::string message);
-        void msgSendToChannel(int fd, std::string target, std::string message);
         void sendServerReply(int fd, int code, std::string message);
+        void msgSendToChannel(int fd, std::string target, std::string message);
+        void msgSendToNick(int fd, std::string target, std::string message);
+        void sendChangeNick(int fd, std::string arg, std::string oldNickname);
 
         // mode helpers
         bool needAnArg(char sign, char flag);

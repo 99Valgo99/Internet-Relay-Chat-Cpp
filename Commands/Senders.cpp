@@ -80,5 +80,12 @@ void Server::sendServerReply(int fd, int code, std::string message)
 
 void Server::sendWelcome(int fd)
 {
+    std::string welMsg = "Welcome to the internet relay network chat " + clients[fd].nickName + "!" + clients[fd].userName + "@localhost";
+    sendServerReply(fd, 1, welMsg);
+}
 
+void Server::sendChangeNick(int fd, std::string arg, std::string oldNickname)
+{
+    std::string changeMsg = ":" + oldNickname + "!" + clients[fd].userName + "@localhost " + "NICK " + arg;
+    sendServerReply(fd, 0, changeMsg);
 }

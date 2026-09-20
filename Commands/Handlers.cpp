@@ -23,7 +23,7 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
         sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
-    if (nameChannel.empty() || nameChannel[0] != '#')
+    if (nameChannel.empty() || nameChannel[0] != '#' || nameChannel[0] != '&')
     {
         sendServerReply(fd, 403, "Error: JOIN No such a channel !");
         return ;
@@ -107,7 +107,7 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
         sendServerReply(fd, 403, "Error: KICK No such a channel !");
         return ;
     }
-    if (listChannel[0] != '#')
+    if (listChannel[0] != '#' && listChannel[0] != '&')
     {
         sendServerReply(fd, -1, "Error: KICK malformed channel's name !");
         return ;
@@ -234,12 +234,12 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
-    if (_nickname[0] == '#')
+    if (_nickname[0] == '#' || _nickname[0] == '&')
     {
         sendServerReply(fd, 401, "Error: INVITE Invalid Nickname !");
         return ;
     }
-    if (_channel[0] != '#')
+    if (_channel[0] != '#' && _channel[0] != '&')
     {
         sendServerReply(fd, 403, "Error: INVITE No such a channel !");
         return ;
@@ -266,7 +266,6 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         std::set<int>::const_iterator inviter_member = it->second.getChannelsMembers().find(fd);
         if (inviter_member == it->second.getChannelsMembers().end())
         {
-            // std::cerr << "Error: The inviter client is not a memeber of this channel !" << std::endl;
             sendServerReply(fd, 442, "Error: INVITE Inviter is not a member of this channel !");
             return ;
         }
