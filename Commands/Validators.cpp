@@ -41,7 +41,7 @@ void Server::validateNick(int fd, std::string arg)
 {
     if (!clients[fd].validPass)
     {
-        std::cerr << "Error, Needs a password before using NICK: PASS ****" << std::endl;
+        sendServerReply(fd, 451, "Erro: Need a password before using NICK !");
         return ;
     }
     if (arg.empty())
@@ -51,7 +51,7 @@ void Server::validateNick(int fd, std::string arg)
     }
     if (arg[0] == '#')
     {
-        std::cerr << "Error: Can't start you nickname with '#', Only a channel do" << std::endl;
+        sendServerReply(fd, 999, "Error: Can't start your nickname with '#', only channels do !");
         return ;
     }
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
@@ -64,5 +64,12 @@ void Server::validateNick(int fd, std::string arg)
             return ;
         }
     }
+    bool alreadyAuth = clients[fd].isClientAuth();
     clients[fd].nickName = arg;
+    bool currAuth = clients[fd].isClientAuth();
+
+    if (!alreadyAuth && currAuth)
+        sendWelcome(fd);
+    else if (alreadyAuth)
+        sendchangeNick(fd, arg);
 }

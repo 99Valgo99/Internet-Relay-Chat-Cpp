@@ -1,6 +1,6 @@
 # include "../Server/Server.hpp"
 
-void dispatchJoin(int fd, std::istringstream& stream)
+void Server::dispatchJoin(int fd, std::istringstream& stream)
 {
     std::string channelname, keys, leftovers;
     stream >> channelname >> keys;

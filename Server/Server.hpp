@@ -28,14 +28,17 @@ class Server {
         std::vector<struct pollfd> poll_fds;
         std::map<std::string, Channel> channels;
     
+        // server loop helpers
         void acceptNclient();
         bool spreadMessage(int fd);
         void setupSocket(int port);
         
+        // validators
         void validatePass(int fd, std::string arg);
         void validateNick(int fd, std::string arg);
         void validateUser(int fd, std::string username, std::string realname);
         
+        // command handlers
         void exitAllChannels(int fd);
         bool handleClientData(int fd);
         void handleJoin(int fd, std::string nameChannel, std::string key);
@@ -48,14 +51,16 @@ class Server {
         bool userLimitHelper(Channel& _Channel, std::string arg);
         void operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::string& arg);
 
+        // send + broadcast
         std::string buildSenderPrifix(int fd);
         void msgSendToNick(int fd, std::string target, std::string message);
         void msgSendToChannel(int fd, std::string target, std::string message);
+        void sendServerReply(int fd, int code, std::string message);
 
+        // mode helpers
         bool needAnArg(char sign, char flag);
         bool getTheArg(std::vector<std::string>& argLeft, size_t& index, std::string& consumedArg);
 
-        void sendServerReply(int fd, int code, std::string message);
 
         // dispatchers
         void dispatchPass(int fd, std::istringstream& stream);

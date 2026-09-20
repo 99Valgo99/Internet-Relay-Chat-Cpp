@@ -5,7 +5,7 @@ void Server::dispatchMode(int fd, std::istringstream& stream)
     char sign;
     size_t threeArgCounter = 0;
     std::string modeStr, channelModed;
-    stream >> channelModed >> modeSt
+    stream >> channelModed >> modeStr;
 
     if (!channelModed.empty() && channelModed[0] != '#')
     {
@@ -14,7 +14,7 @@ void Server::dispatchMode(int fd, std::istringstream& stream)
     }
     
     std::string oneArgVector;
-    std::vector<std::string> argsLef
+    std::vector<std::string> argsLeft;
     while (stream >> oneArgVector)
         argsLeft.push_back(oneArgVector);
     for (size_t i = 0; i < modeStr.size(); i++)

@@ -159,11 +159,11 @@ bool Server::handleClientData(int fd)
             
             else if (command == "MODE")
                 dispatchMode(fd, stream);
-            
+
             else
                 sendServerReply(fd, 421, "Error: Unkown Command !");
         }
-        return true;
+        return true; // to verify..
     }
     else if (bytes == 0)
     { // client is dead.
@@ -175,6 +175,7 @@ bool Server::handleClientData(int fd)
         close(fd);
         return false;
     }
+    // no return in all control flows, no error in compilation as well..weird?
 }
 
 bool Server::needAnArg(char sign, char flag)
@@ -208,12 +209,4 @@ bool Server::getTheArg(std::vector<std::string>& argLeft, size_t& index, std::st
     std::cout << "Arg consumed: " << consumedArg << std::endl;
     index++;
     return true;
-}
-
-void Server::sendServerReply(int fd, int code, std::string message)
-{
-    std::map<int, Client>::iterator it_client = this->clients.find(fd);
-    std::ostringstream reply;
-    reply << "ircserv " << code << " " << it_client->second.nickName << " :" << message;
-    it_client->second.sendBytes.append(reply.str() + "\r\n");
 }

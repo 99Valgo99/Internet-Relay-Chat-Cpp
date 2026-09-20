@@ -10,7 +10,6 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
 {
     if (target.empty())
     {
-        // std::cerr << "ERROR: PRIVMSG does not accept empty target !" << std::endl;
         sendServerReply(fd, 461, "ERROR: PRIVMSG needs more parameters !");
         return ;
     }
@@ -24,7 +23,6 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
             return ;
         }
     }
-    // std::cout << "Error: No such a client with the nickname:" << target << std::endl;
     sendServerReply(fd, 401, "Error: No such a client with the nickname:");
 }
 
@@ -33,14 +31,12 @@ void Server::msgSendToChannel(int fd, std::string target, std::string message)
     std::cout << "Broadcasting to channel: " << target << std::endl;
     if (target.empty())
     {
-        // std::cerr << "Error: PRIVMSG does not accept empty target !" << std::endl;
         sendServerReply(fd, 461, "ERROR: PRIVMSG needs more parameters !");
         return ;
     }
     std::map<std::string, Channel>::iterator it = this->channels.find(target);
     if (it == this->channels.end())
     {
-        // std::cerr << "Error: No Channel was found with this name !" << std::endl;
         sendServerReply(fd, 404, "Error: No Channel was found with this name !");
         return ;
     }
@@ -50,7 +46,6 @@ void Server::msgSendToChannel(int fd, std::string target, std::string message)
         const std::set<int>& members = it->second.getChannelsMembers();
         if (members.find(fd) == members.end())
         {
-            // std::cerr << "Error: The client has not joined this channel !" << std::endl;
             sendServerReply(fd, 404, "Error: The client has not joined this channel !");
             return ;
         }
@@ -73,4 +68,17 @@ bool Server::spreadMessage(int fd)
     }
     clients[fd].sendBytes.erase(0, sendResult);
     return true;
+}
+
+void Server::sendServerReply(int fd, int code, std::string message)
+{
+    std::map<int, Client>::iterator it_client = this->clients.find(fd);
+    std::ostringstream reply;
+    reply << "ircserv " << code << " " << it_client->second.nickName << " :" << message;
+    it_client->second.sendBytes.append(reply.str() + "\r\n");
+}
+
+void Server::sendWelcome(int fd)
+{
+
 }
