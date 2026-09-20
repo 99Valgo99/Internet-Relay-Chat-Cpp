@@ -9,9 +9,9 @@
 
 ### Working On:
 
-* Universal channel-broadcast function (JOIN confirmation to channel (Done), KICK notification, JOIN 0/PART notification (Done))
-* KICK's comment argument — parsed but unused, needs wiring into its eventual broadcast
-* TOPIC message to the sender of the command
+* Universal channel-broadcast function (JOIN confirmation to channel (Done), KICK notification (Done), JOIN 0/PART notification (Done))
+* KICK's comment argument — parsed but unused, needs wiring into its eventual broadcast (Done)
+* TOPIC message to the sender of the command (Done)
 * Need to check for channel re JOINING
 * Signals handling
 * Clean fds once the server gets CTRL + C or other ending signals.

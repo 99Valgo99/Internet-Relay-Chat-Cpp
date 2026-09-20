@@ -141,3 +141,9 @@ void Server::broadcastKick(int kicker, int kicked, Channel& channel, std::string
         // sendServerReply(kicked, 0, kickMsg); // why does the kick message arive twice, and when this line is removed, it does not arrive at all?
     }
 }
+
+void Server::broadcastTopic(int fd, Channel& channel)
+{
+    std::string topicmsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " TOPIC " + channel.getChannelsName() + " :" + channel.getTopic();
+    sendServerReply(fd, 0, topicmsg);
+}

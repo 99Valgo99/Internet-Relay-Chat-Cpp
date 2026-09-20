@@ -222,6 +222,7 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
             it->second.setTopic("");
         else
             it->second.setTopic(_topic);
+        broadcastTopic(fd, it->second);
     }
     else
     {
