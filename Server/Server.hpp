@@ -54,6 +54,7 @@ class Server {
         // send + broadcast
         void sendWelcome(int fd);
         std::string buildSenderPrifix(int fd);
+        bool alreadyJoined(int fd, Channel& Channel);
         void broadcastTopic(int fd, Channel& channel);
         void sendChanneljoin(int fd, Channel& channel);
         void broadcastJoin(int joined, Channel& channel);

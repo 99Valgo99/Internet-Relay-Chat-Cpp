@@ -9,11 +9,21 @@ void Server::exitAllChannels(int fd)
             continue;
         else
         {
+            broadcastExit(fd, it->second);
             it->second.removeClientsFromChannel(fd);
             it->second.removeOperator(fd);
-            broadcastExit(fd, it->second);
         }
     }
+}
+
+bool Server::alreadyJoined(int fd, Channel& Channel)
+{
+    for (std::set<int>::iterator it = Channel.getChannelsMembers().begin(); it != Channel.getChannelsMembers().end(); ++it)
+    {
+        if (*it == fd)
+            return true;
+    }
+    return false;
 }
 
 void Server::handleJoin(int fd, std::string nameChannel, std::string key)
@@ -40,6 +50,12 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
         std::set<int> ops = newChannel.getOperators();
         this->channels.insert(std::make_pair(nameChannel, newChannel));
         sendChanneljoin(fd, newChannel);
+        return ;
+    }
+    bool alreadyIn = alreadyJoined(fd, it->second);
+    if (alreadyIn)
+    {
+        sendServerReply(fd, 462, "ERROR: JOIN Client is already a member of this channel !");
         return ;
     }
     if (it->second.getInviteToggle())
