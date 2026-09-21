@@ -7,6 +7,7 @@ int main(int argc, char **argv) {
     }
     try {
         signal(SIGINT, Server::signalHandler);
+        signal(SIGTSTP, SIG_IGN);
         Server Serv(std::atoi(argv[1]), argv[2]);
         Serv.run();
     } catch (std::exception& e) {

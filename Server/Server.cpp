@@ -58,6 +58,11 @@ void Server::run()
                 poll_fds[i].events = POLLIN;
         }
         int up = poll(&this->poll_fds[0], poll_fds.size(), -1);
+        if (Server::signalComing == 1)
+        {
+            this->cleanUp();
+            break;
+        }
         if (up == -1)
         {
             std::cerr << "Internal Server Error: poll() Failed !" << std::endl;
@@ -217,4 +222,12 @@ bool Server::getTheArg(std::vector<std::string>& argLeft, size_t& index, std::st
     std::cout << "Arg consumed: " << consumedArg << std::endl;
     index++;
     return true;
+}
+
+void Server::cleanUp()
+{
+    close(this->listen_fd);
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+        close (it->first);
+    std::cout << "\nircserv: Cleanup..." << std::endl;
 }

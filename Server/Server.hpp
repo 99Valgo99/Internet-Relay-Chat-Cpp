@@ -84,6 +84,9 @@ class Server {
         void dispatchTopic(int fd, std::istringstream& stream);
         void dispatchInvite(int fd, std::istringstream& stream);
         void dispatchMode(int fd, std::istringstream& stream);
+
+        // cleanup
+        void cleanUp();
     
     public:
         void run();
@@ -91,7 +94,6 @@ class Server {
 
         // signal handler
         static void signalHandler(int signumber);
-
     };
 
 # endif

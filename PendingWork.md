@@ -15,7 +15,7 @@
 * Need to check for channel re JOINING (Done)
 * flushing Partial commands using nc -C + CTRL + D test from subject (Done).
 * in case the operator has left the channel and no op left, the first client joined after the operator and not an op becomes an op. (Done)
-* Signals handling && Clean fds once the server gets CTRL + C or other ending signals.
+* Signals handling && Clean fds once the server gets CTRL + C or other ending signals. (Done)
 * Hostname placeholder decision ("localhost" vs real IP) (Done)
 * Channel name case-insensitivity fix
 * Nickname character-set/length grammar validation.

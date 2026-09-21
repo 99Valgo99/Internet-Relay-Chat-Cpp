@@ -251,6 +251,7 @@ _________________________________________________________
 ### Server's Signal Handling:
 
 When capturing system signals like ``CTRL + c`` (``SIGINT``) in C++, we cannot simply point the operating system to a standard member function, the OS requires a function with a specific C-style signature that can be called globally without needing an object instance.
+We can also handle CTRL + Z from suspending our program and keep it in a frozen state, using two Macros ``SIGSTP`` in order to tell the OS what signal we are catching (mainly here ``Ctrl + Z``) then as handler we use the macro ``SIG_IGN`` that basically tells the OS to just ignore this signal and keep our process running.
 
 #### The solution: Static Members (``static``)
 
