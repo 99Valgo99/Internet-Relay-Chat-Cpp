@@ -53,6 +53,11 @@ const std::string& Channel::getTopic() const {
 void Channel::removeOperator(int fd)
 {
     this->operators.erase(fd);
+    if (operators.empty())
+    {
+        if (!fds_list.empty())
+            this->operators.insert(*fds_list.begin());
+    }
 }
 
 void Channel::toggleInvite(bool toggle) {

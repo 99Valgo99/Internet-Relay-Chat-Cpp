@@ -306,7 +306,7 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
     }
 }
 
-bool Server::userLimitHelper(Channel& _Channel, std::string arg)
+bool Server::userLimitHelper(int fd, Channel& _Channel, std::string arg)
 {
     for (size_t i = 0; i < arg.size(); i++)
     {
@@ -317,6 +317,7 @@ bool Server::userLimitHelper(Channel& _Channel, std::string arg)
     long value = std::strtol(arg.c_str(), &endptr, 10);
     if (*endptr != '\0'|| value < 0 || value == LONG_MAX)
         return false;
+    sendModeMsg(fd, 'l', _Channel, true);
     _Channel.setUserLimit(value);
     return true;
 }
@@ -344,9 +345,15 @@ void Server::operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::st
         return ;
     }
     if (toggle)
+    {
+        sendModeMsg(fd, 'o', _Channel, toggle);
         _Channel.addOperators(*member_it);
+    }
     else
+    {
+        sendModeMsg(fd, 'o', _Channel, toggle);
         _Channel.removeOperator(*member_it);
+    }
 }
 
 void Server::handleMode(int fd, std::string channel_, char sign, char flag, std::string arg)
@@ -369,17 +376,26 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
     if (arg.empty())
     {
         if (flag == 'i')
+        {
+            sendModeMsg(fd, flag, channel_it->second, toggle);
             channel_it->second.toggleInvite(toggle);
+        }
         else if (flag == 't')
+        {
+            sendModeMsg(fd, flag, channel_it->second, toggle);
             channel_it->second.toggleTopic(toggle);
+        }
         if (flag == 'l' && !toggle)
+        {
+            sendModeMsg(fd, flag, channel_it->second, toggle);
             channel_it->second.setUserLimit(-1);
+        }
     }
     else if (!arg.empty())
     {
         if (flag == 'l' && toggle)
         {
-            bool invalid = userLimitHelper(channel_it->second, arg);
+            bool invalid = userLimitHelper(fd, channel_it->second, arg);
             if (!invalid)
             {
                 sendServerReply(fd, 461, "Error: MODE invalid argument for l flag !");
@@ -389,9 +405,15 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
         else if (flag == 'k')
         {
             if (!toggle)
+            {
+                sendModeMsg(fd, flag, channel_it->second, toggle);
                 channel_it->second.setChannelPassword("");
+            }
             else
+            {
+                sendModeMsg(fd, flag, channel_it->second, toggle);
                 channel_it->second.setChannelPassword(arg);
+            }
         }
         else if (flag == 'o')
             operatorModeHelper(fd, channel_it->second, toggle, arg);

@@ -8,7 +8,10 @@ void Server::validatePass(int fd, std::string arg)
         return ;
     }
     if (arg == this->password)
+    {
         clients[fd].validPass = true;
+        sendServerReply(fd, 0, "PASS: Password Confirmed !");
+    }
     else
     {
         sendServerReply(fd, 464, "Error: Password Mismatch !");

@@ -147,3 +147,13 @@ void Server::broadcastTopic(int fd, Channel& channel)
     std::string topicmsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " TOPIC " + channel.getChannelsName() + " :" + channel.getTopic();
     sendServerReply(fd, 0, topicmsg);
 }
+
+void Server::sendModeMsg(int fd, char flag, Channel& channel, bool toggle)
+{
+    std::string modeMsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " MODE " + channel.getChannelsName() + " " + flag;
+    if (toggle)
+        modeMsg.append(": Has been activated !");
+    else
+        modeMsg.append(": Has been deactivated !");
+    sendServerReply(fd, 0, modeMsg);
+}

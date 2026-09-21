@@ -41,7 +41,7 @@ class Server {
         // command handlers
         void exitAllChannels(int fd);
         bool handleClientData(int fd);
-        bool userLimitHelper(Channel& _Channel, std::string arg);
+        bool userLimitHelper(int fd, Channel& _Channel, std::string arg);
         void handleJoin(int fd, std::string nameChannel, std::string key);
         void handleTopic(int fd, std::string channelT, std::string _topic);
         void handlePrvMsg(int fd, std::string targets, std::string message);
@@ -64,6 +64,7 @@ class Server {
         void invitationMsg(int sender, int invited, std::string channelname);
         void sendChangeNick(int fd, std::string arg, std::string oldNickname);
         void msgSendToChannel(int fd, std::string target, std::string message);
+        void sendModeMsg(int fd, char flag, Channel& channel, bool toggle);
         void broadcastKick(int kicker, int kicked, Channel& channel, std::string comment);
 
         // mode helpers
