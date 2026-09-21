@@ -1,11 +1,14 @@
 # include "Server/Server.hpp"
 
+volatile sig_atomic_t signalComing = 0;
+
 int main(int argc, char **argv) {
     if (argc != 3) {
         std::cerr << "Error: Expected Format ./ircserv <port> <password>" << std::endl;
         exit(1);
     }
     try {
+        signal(SIGINT, Server::signalHandler);
         Server Serv(std::atoi(argv[1]), argv[2]);
         Serv.run();
     } catch (std::exception& e) {

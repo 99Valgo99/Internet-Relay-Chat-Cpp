@@ -16,7 +16,8 @@
 * flushing Partial commands using nc -C + CTRL + D test from subject (Done).
 * in case the operator has left the channel and no op left, the first client joined after the operator and not an op becomes an op. (Done)
 * Signals handling && Clean fds once the server gets CTRL + C or other ending signals.
-* Hostname placeholder decision ("localhost" vs real IP) (To leave as is)
+* Hostname placeholder decision ("localhost" vs real IP) (Done)
 * Channel name case-insensitivity fix
+* Nickname character-set/length grammar validation.
 * PRIVMSG embedded \r\n injection check
 * Real reference client testing (WeeChat/irssi/HexChat) — haven't touched this at all yet, and it's arguably the most important remaining item since it validates everything else

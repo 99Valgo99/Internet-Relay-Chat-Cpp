@@ -1,5 +1,13 @@
 #include "Server.hpp"
 
+int Server::signalComing = 0;
+
+void Server::signalHandler(int signumber)
+{
+    (void)signumber;
+    signalComing = 1;
+}
+
 Server::Server(int port, std::string _password)
 {
     this->password = _password;
