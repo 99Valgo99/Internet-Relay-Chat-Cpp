@@ -247,3 +247,32 @@ o    | grant/revoke operator| yes          | yes
 l    | user limit           | yes          | no
 _________________________________________________________
 ```
+
+### Server's Signal Handling:
+
+When capturing system signals like ``CTRL + c`` (``SIGINT``) in C++, we cannot simply point the operating system to a standard member function, the OS requires a function with a specific C-style signature that can be called globally without needing an object instance.
+
+#### The solution: Static Members (``static``)
+
+To bridge C-style OS signals with an object-orented C++ class, we must use **Static** components
+
+**Why Static ?**:
+
+* **Static Variable**: acts as a shared, class-wide flag, because it is static, there is only one instance of it shared across the entire program, independent of whether any ``Server`` objects have been created, thus we must also declare it at the top of the ``.cpp`` file in order for the allocation to happen, (No object instance, no Automatic allocation occurs as well).
+
+* **Static Function**: Belongs to the class blueprint rather than any specific object.
+
+#### Why we use ``volatile``
+
+``volatile``: because a signal handler is called ``asynchronously`` by the operating system (iterrupting our program out of nowhere), the compiler doesn't realize that our variable can change behind its back; thus:
+
+* Without ``volatile``, the compiler might optimize our usage of it by caching the variable in a CPU register.
+* Once cached, our program will never check the actual memory again, meaning it will completely ignore ``CTLR + c`` , ``volatile`` forces the compiler to re-read the variable from memory every single time.
+
+#### Good notes about this section:
+
+* **Linker vs. Runtime:** Static varibales must be defined in a ``.cpp`` file. Defining them inside a constructor fails because contructors run at runtime, whereas the linker allocates static memmory before the program even starts.
+
+* **Private Access:** A ``static`` member function has full access to ``privae`` static variables of its class, even though external code cannot touch them directly.
+
+* Regular functions & statics: regular non-static functions can read/write static variables, but cannot be used as OS signal handlers because they require an object-bound ``this`` pointer.

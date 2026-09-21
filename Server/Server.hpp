@@ -28,7 +28,7 @@ class Server {
         std::map<int, Client> clients;
         std::vector<struct pollfd> poll_fds;
         std::map<std::string, Channel> channels;
-        static int signalComing;
+        static volatile int signalComing;
     
         // server loop helpers
         void acceptNclient();

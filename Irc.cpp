@@ -1,7 +1,5 @@
 # include "Server/Server.hpp"
 
-volatile sig_atomic_t signalComing = 0;
-
 int main(int argc, char **argv) {
     if (argc != 3) {
         std::cerr << "Error: Expected Format ./ircserv <port> <password>" << std::endl;

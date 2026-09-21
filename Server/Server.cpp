@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-int Server::signalComing = 0;
+volatile int Server::signalComing = 0;
 
 void Server::signalHandler(int signumber)
 {
