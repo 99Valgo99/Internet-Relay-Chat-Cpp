@@ -42,6 +42,20 @@ void Server::validateUser(int fd, std::string username, std::string realname)
         sendWelcome(fd);
 }
 
+bool Server::nickRegex(std::string arg)
+{
+    if (std::isdigit(arg[0]) || arg[0] == '-' || arg.size() > 9)
+        return false;
+    for (size_t i = 0; i < arg.size(); i++)
+    {
+        if (!std::isalpha(arg[i]) && !std::isdigit(arg[i]) && arg[i] != '[' && arg[i] != ']' && arg[i] != '`'
+            && arg[i] != '_' && arg[i] != '^' && arg[i] != '{'
+            && arg[i] != '}' && arg[i] != '|' && arg[i] != '-')
+            return false;
+    }
+    return true;
+}
+
 void Server::validateNick(int fd, std::string arg)
 {
     if (!clients[fd].validPass)
@@ -57,6 +71,11 @@ void Server::validateNick(int fd, std::string arg)
     if (arg[0] == '#' || arg[0] == '&')
     {
         sendServerReply(fd, 999, "Error: Can't start your nickname with '#', only channels do !");
+        return ;
+    }
+    if (!nickRegex(arg))
+    {
+        sendServerReply(fd, 432, "Error: NICK nicknames does not comply with the server nickanames rules !");
         return ;
     }
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)

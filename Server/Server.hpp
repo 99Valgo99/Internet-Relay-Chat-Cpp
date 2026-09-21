@@ -36,6 +36,7 @@ class Server {
         void setupSocket(int port);
         
         // validators
+        bool nickRegex(std::string arg);
         void validatePass(int fd, std::string arg);
         void validateNick(int fd, std::string arg);
         void validateUser(int fd, std::string username, std::string realname);
@@ -43,6 +44,7 @@ class Server {
         // command handlers
         void exitAllChannels(int fd);
         bool handleClientData(int fd);
+        void lowerChannelName(std::string& nameChannel);
         bool userLimitHelper(int fd, Channel& _Channel, std::string arg);
         void handleJoin(int fd, std::string nameChannel, std::string key);
         void handleTopic(int fd, std::string channelT, std::string _topic);

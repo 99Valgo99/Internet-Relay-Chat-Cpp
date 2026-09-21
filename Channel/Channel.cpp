@@ -1,12 +1,13 @@
 # include "Channel.hpp"
 
-Channel::Channel(std::string name, int fd) {
+Channel::Channel(std::string name, int fd, std::string _originalName) {
     this->userLimit = -1;
     this->channelsName = name;
     this->fds_list.insert(fd);
     this->operators.insert(fd);
     this->inviteOnly = false;
     this->topicToggle = false;
+    this->originalName = _originalName;
 }
 
 void Channel::addClientsToChannel(int fd) {
@@ -90,4 +91,8 @@ void Channel::setChannelPassword(std::string _password) {
 
 const std::string& Channel::getChannelPassword() const {
     return (this->password);
+}
+
+const std::string& Channel::getChannelOriginalName() const {
+    return (this->originalName);
 }

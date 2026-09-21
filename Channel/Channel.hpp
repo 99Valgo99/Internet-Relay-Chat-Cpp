@@ -14,12 +14,13 @@ class Channel {
         std::string password;
         std::string topic;
         std::string channelsName;
+        std::string originalName;
         std::set<int> fds_list;
         std::set<int> operators;
         std::set<int> invited;
     
     public:
-        Channel(std::string name, int fd);
+        Channel(std::string name, int fd, std::string _originalName);
         
         void addClientsToChannel(int fd);
         void removeClientsFromChannel(int fd);
@@ -47,6 +48,8 @@ class Channel {
 
         void setChannelPassword(std::string _password);
         const std::string& getChannelPassword() const;
+
+        const std::string& getChannelOriginalName() const;
 };
 
 

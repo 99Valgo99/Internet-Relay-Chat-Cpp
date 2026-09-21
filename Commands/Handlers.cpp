@@ -26,6 +26,12 @@ bool Server::alreadyJoined(int fd, Channel& Channel)
     return false;
 }
 
+void Server::lowerChannelName(std::string& nameChannel)
+{
+    for (size_t i = 0; i < nameChannel.size(); i++)
+        nameChannel[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(nameChannel[i])));
+}
+
 void Server::handleJoin(int fd, std::string nameChannel, std::string key)
 {
     if (!clients[fd].isClientAuth())
@@ -38,6 +44,8 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
         sendServerReply(fd, 403, "Error: JOIN No such a channel !");
         return ;
     }
+    std::string originalName = nameChannel;
+    lowerChannelName(nameChannel);
     std::map<std::string, Channel>::iterator it = channels.find(nameChannel);
     if (it == channels.end())
     {
@@ -46,7 +54,12 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
             sendServerReply(fd, 999, "Error: Malformed JOIN argument, to set a key for a channel, use MODE #example +k");
             return ;
         }
-        Channel newChannel(nameChannel, fd);
+        if (nameChannel.size() > 50)
+        {
+            sendServerReply(fd, 999, "Error: Channel's name does not comply with the server's rules !");
+            return ;
+        }
+        Channel newChannel(nameChannel, fd, originalName);
         std::set<int> ops = newChannel.getOperators();
         this->channels.insert(std::make_pair(nameChannel, newChannel));
         sendChanneljoin(fd, newChannel);
@@ -132,6 +145,7 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
         sendServerReply(fd, 461, "Error: KICK needs more parameters !");
         return ;
     }
+    lowerChannelName(listChannel);
     std::map<std::string, Channel>::iterator channel_it = channels.find(listChannel);
     if (channel_it == channels.end())
     {
@@ -204,6 +218,7 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
         sendServerReply(fd, 451, "Error: Client is not authenicated yet !");
         return ;
     }
+    lowerChannelName(channelT);
     std::map<std::string, Channel>::iterator it = this->channels.find(channelT);
     if (it == channels.end())
     {
@@ -275,11 +290,13 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         sendServerReply(fd, 401, "Error: INVITE No Such a nickname !");
         return ;
     }
+    std::string asIs = _channel;
+    lowerChannelName(_channel);
     std::map<std::string, Channel>::iterator it = channels.find(_channel);
     if (it == channels.end())
     {
         sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
-        invitationMsg(fd, user_fd, _channel);
+        invitationMsg(fd, user_fd, asIs);
         return ;
     }
     else
@@ -295,7 +312,7 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         {
             it->second.addInvited(user_fd);
             sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
-            invitationMsg(fd, user_fd, it->second.getChannelsName());
+            invitationMsg(fd, user_fd, it->second.getChannelOriginalName());
             return ;
         }
         else
@@ -358,6 +375,7 @@ void Server::operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::st
 
 void Server::handleMode(int fd, std::string channel_, char sign, char flag, std::string arg)
 {
+    lowerChannelName(channel_);
     std::map<std::string, Channel>::iterator channel_it = channels.find(channel_);
     if (channel_it == channels.end())
     {

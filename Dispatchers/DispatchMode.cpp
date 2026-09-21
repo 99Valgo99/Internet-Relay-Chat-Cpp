@@ -49,7 +49,7 @@ void Server::dispatchMode(int fd, std::istringstream& stream)
                 }
             }
             else
-                sendServerReply(fd, 472, "Error: Mode Unknown Mode !");
+                sendServerReply(fd, 472, "Error: MODE Unknown Mode !");
         }
     }
 }

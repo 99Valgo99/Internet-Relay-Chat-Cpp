@@ -34,6 +34,8 @@ void Server::msgSendToChannel(int fd, std::string target, std::string message)
         sendServerReply(fd, 461, "ERROR: PRIVMSG needs more parameters !");
         return ;
     }
+    std::string originalName = target;
+    lowerChannelName(target);
     std::map<std::string, Channel>::iterator it = this->channels.find(target);
     if (it == this->channels.end())
     {
@@ -53,7 +55,7 @@ void Server::msgSendToChannel(int fd, std::string target, std::string message)
         {
             if (*it_members == fd)
                 continue ;
-            this->clients[*it_members].sendBytes.append(sender + " PRIVMSG " + target + " :" + message + "\r\n");
+            this->clients[*it_members].sendBytes.append(sender + " PRIVMSG " + originalName + " :" + message + "\r\n");
         }
     }
 }
@@ -92,7 +94,7 @@ void Server::sendChangeNick(int fd, std::string arg, std::string oldNickname)
 
 void Server::sendChanneljoin(int fd, Channel& channel)
 {
-    std::string joinMsg = "Welcome to " + channel.getChannelsName();
+    std::string joinMsg = "Welcome to " + channel.getChannelOriginalName();
     sendServerReply(fd, 332, joinMsg);
     if (!channel.getTopic().empty())
     {
@@ -109,7 +111,7 @@ void Server::invitationMsg(int sender, int invited, std::string channelname)
 
 void Server::broadcastJoin(int joined, Channel& channel)
 {
-    std::string joinMsg = clients[joined].nickName + "!" + clients[joined].userName + "@localhost" + " JOIN " + channel.getChannelsName();
+    std::string joinMsg = clients[joined].nickName + "!" + clients[joined].userName + "@localhost" + " JOIN " + channel.getChannelOriginalName();
     
     for (std::set<int>::iterator members = channel.getChannelsMembers().begin(); members != channel.getChannelsMembers().end(); ++members)
     {
@@ -125,7 +127,7 @@ void Server::broadcastExit(int clientLeft, Channel& channel)
     {
         if (*members == clientLeft)
             continue ;
-        std::string exitMsg = clients[clientLeft].nickName + "!" + clients[clientLeft].userName + "@localhost" + " JOIN 0 " + channel.getChannelsName();
+        std::string exitMsg = clients[clientLeft].nickName + "!" + clients[clientLeft].userName + "@localhost" + " JOIN 0 " + channel.getChannelOriginalName();
         sendServerReply(*members, 0, exitMsg);
     }
 }
@@ -134,7 +136,7 @@ void Server::broadcastKick(int kicker, int kicked, Channel& channel, std::string
 {
     for (std::set<int>::iterator member = channel.getChannelsMembers().begin(); member != channel.getChannelsMembers().end(); ++member)
     {
-        std::string kickMsg = clients[kicker].nickName + "!" + clients[kicker].userName + "@localhost" + " KICK " + channel.getChannelsName() + " " + clients[kicked].nickName;
+        std::string kickMsg = clients[kicker].nickName + "!" + clients[kicker].userName + "@localhost" + " KICK " + channel.getChannelOriginalName() + " " + clients[kicked].nickName;
         if (!comment.empty())
             kickMsg.append(" :" + comment);
         sendServerReply(*member, 0, kickMsg);
@@ -144,13 +146,13 @@ void Server::broadcastKick(int kicker, int kicked, Channel& channel, std::string
 
 void Server::broadcastTopic(int fd, Channel& channel)
 {
-    std::string topicmsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " TOPIC " + channel.getChannelsName() + " :" + channel.getTopic();
+    std::string topicmsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " TOPIC " + channel.getChannelOriginalName() + " :" + channel.getTopic();
     sendServerReply(fd, 0, topicmsg);
 }
 
 void Server::sendModeMsg(int fd, char flag, Channel& channel, bool toggle)
 {
-    std::string modeMsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " MODE " + channel.getChannelsName() + " " + flag;
+    std::string modeMsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " MODE " + channel.getChannelOriginalName() + " " + flag;
     if (toggle)
         modeMsg.append(": Has been activated !");
     else
