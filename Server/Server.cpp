@@ -92,6 +92,7 @@ void Server::run()
         for (size_t j = 0; j < needRemove.size(); j++)
         {
             int deadFd = needRemove[j];
+            exitAllChannels(deadFd);
             for (size_t x = 0; x < this->poll_fds.size(); x++)
             {
                 if (this->poll_fds[x].fd == deadFd)
@@ -172,7 +173,14 @@ bool Server::handleClientData(int fd)
             
             else if (command == "MODE")
                 dispatchMode(fd, stream);
-
+            else if (command == "PING")
+            {
+                std::string token;
+                std::getline(stream, token);
+                if (!token.empty() && token[0] == ' ')
+                    token.erase(0, 1);
+                clients[fd].sendBytes.append("PONG " + token + "\r\n");
+            }
             else
                 sendServerReplyarg(fd, 421, command, "Unkown Command !");
         }

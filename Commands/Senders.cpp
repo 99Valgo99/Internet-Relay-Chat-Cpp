@@ -23,7 +23,7 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
             return ;
         }
     }
-    sendServerReply(fd, 401, "Error: No such a client with the nickname:");
+    sendServerReply(fd, 401, "Error: No such a client with the nickname:" + target);
 }
 
 void Server::msgSendToChannel(int fd, std::string target, std::string message)
@@ -55,7 +55,10 @@ void Server::msgSendToChannel(int fd, std::string target, std::string message)
         {
             if (*it_members == fd)
                 continue ;
-            this->clients[*it_members].sendBytes.append(sender + " PRIVMSG " + originalName + " :" + message + "\r\n");
+            std::map<int, Client>::iterator guard = this->clients.find(*it_members);
+            if (guard == clients.end())
+                continue ;
+            guard->second.sendBytes.append(sender + " PRIVMSG " + originalName + " :" + message + "\r\n");
         }
     }
 }
@@ -75,6 +78,8 @@ bool Server::spreadMessage(int fd)
 void Server::sendServerReply(int fd, int code, std::string message)
 {
     std::map<int, Client>::iterator it_client = this->clients.find(fd);
+    if (it_client == this->clients.end())
+        return ;
     std::ostringstream reply;
     reply << ":ircserv " << std::setfill('0') << std::setw(3) << code << " " << it_client->second.nickName << " :" << message;
     it_client->second.sendBytes.append(reply.str() + "\r\n");
@@ -83,6 +88,8 @@ void Server::sendServerReply(int fd, int code, std::string message)
 void Server::sendServerReplyarg(int fd, int code, std::string arg, std::string message)
 {
     std::map<int, Client>::iterator it_client = this->clients.find(fd);
+    if (it_client == this->clients.end())
+        return ;
     std::ostringstream reply;
     reply << ":ircserv " << code << " " << it_client->second.nickName << " " << arg << " :" << message;
     it_client->second.sendBytes.append(reply.str() + "\r\n");
