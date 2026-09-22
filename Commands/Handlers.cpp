@@ -233,8 +233,10 @@ void Server::handleTopic(int fd, std::string channelT, std::string _topic)
     }
     if (_topic.empty())
     {
-        std::string topicmsg = "The channel's Topic is: " + it->second.getTopic();
-        sendServerReply(fd, 332, topicmsg);
+        if (it->second.getTopic().empty())
+            sendServerReplyarg(fd, 331, channelT, "No topic is set for this channel");
+        else
+            sendServerReplyarg(fd, 332, channelT, it->second.getTopic());
         return ;
     }
     else if (_topic[0] == ':')
@@ -295,7 +297,7 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
     std::map<std::string, Channel>::iterator it = channels.find(_channel);
     if (it == channels.end())
     {
-        sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
+        sendServerReplyarg(fd, 341, _nickname + " " + _channel, "Inviting");
         invitationMsg(fd, user_fd, asIs);
         return ;
     }
@@ -311,7 +313,7 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         if (member == it->second.getChannelsMembers().end())
         {
             it->second.addInvited(user_fd);
-            sendServerReply(fd, 341, "INVITE: Sending the invitation... !");
+            sendServerReplyarg(fd, 341, _nickname + " " + _channel, "Inviting");
             invitationMsg(fd, user_fd, it->second.getChannelOriginalName());
             return ;
         }

@@ -109,13 +109,10 @@ void Server::sendChangeNick(int fd, std::string arg, std::string oldNickname)
 
 void Server::sendChanneljoin(int fd, Channel& channel)
 {
-    std::string joinMsg = "Welcome to " + channel.getChannelOriginalName();
-    sendServerReply(fd, 332, joinMsg);
-    if (!channel.getTopic().empty())
-    {
-        std::string topicmsg = "The channel's Topic is: " + channel.getTopic();
-        sendServerReply(fd, 332, topicmsg);
-    }
+    if (channel.getTopic().empty())
+        sendServerReplyarg(fd, 331, channel.getChannelOriginalName(), "No topic is set for this channel");
+    else
+        sendServerReplyarg(fd, 332, channel.getChannelOriginalName(), channel.getTopic());
 }
 
 void Server::invitationMsg(int sender, int invited, std::string channelname)
@@ -138,7 +135,7 @@ void Server::broadcastJoin(int joined, Channel& channel)
 
 void Server::broadcastExit(int clientLeft, Channel& channel)
 {
-    for (std::set<int>::iterator members = channel.getChannelsMembers().begin(); members != channel.getChannelsMembers().end(); ++members) // Hmmmm, no Const?
+    for (std::set<int>::const_iterator members = channel.getChannelsMembers().begin(); members != channel.getChannelsMembers().end(); ++members)
     {
         if (*members == clientLeft)
             continue ;
@@ -155,7 +152,6 @@ void Server::broadcastKick(int kicker, int kicked, Channel& channel, std::string
         if (!comment.empty())
             kickMsg.append(" :" + comment);
         sendServerReply(*member, 0, kickMsg);
-        // sendServerReply(kicked, 0, kickMsg); // why does the kick message arive twice, and when this line is removed, it does not arrive at all?
     }
 }
 

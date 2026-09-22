@@ -40,7 +40,7 @@ WeeChat will attempt to establish a TLS/SSL encrypted connection, and since our 
             }
 ```
 
-* Testing PRIVMSG:
+* Testing PRIVMSG: (Done)
 
 found an error bug: :ircserv 401 Bob :Error: No such a client with the nickname: (no nickname provided) (fixed)
 
@@ -59,5 +59,11 @@ JOIN #general
 ```
 
 
-* Testing JOIN:
+* Testing JOIN (Done)
+
+* Testing INVITE (Done)
+
+* Testing KICK (Done)
+
+* 
 
