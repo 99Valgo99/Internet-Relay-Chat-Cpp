@@ -174,7 +174,7 @@ bool Server::handleClientData(int fd)
                 dispatchMode(fd, stream);
 
             else
-                sendServerReply(fd, 421, "Error: Unkown Command !");
+                sendServerReplyarg(fd, 421, command, "Unkown Command !");
         }
         return true; // to verify..
     }

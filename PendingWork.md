@@ -16,10 +16,10 @@
 * Hostname placeholder decision ("localhost" vs real IP) (Done)
 * Nickname character-set/length grammar validation. (Done)
 * Channel name case-insensitivity fix (Done)
+* PRIVMSG embedded \r\n injection check (Done)
 
 ### Working On:
 
-* PRIVMSG embedded \r\n injection check
 * Real reference client testing (WeeChat/irssi/HexChat) — haven't touched this at all yet, and it's arguably the most important remaining item since it validates everything else
 
 ### Before push

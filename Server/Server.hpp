@@ -16,6 +16,7 @@
 # include <sstream>
 # include <climits>
 # include <csignal>
+# include <iomanip>
 
 # include "../Client/Client.hpp"
 # include "../Channel/Channel.hpp"
@@ -60,6 +61,7 @@ class Server {
         std::string buildSenderPrifix(int fd);
         bool alreadyJoined(int fd, Channel& Channel);
         void broadcastTopic(int fd, Channel& channel);
+        void sendServerReplyarg(int fd, int code, std::string arg, std::string message);
         void sendChanneljoin(int fd, Channel& channel);
         void broadcastJoin(int joined, Channel& channel);
         void broadcastExit(int clientLeft, Channel& channel);
