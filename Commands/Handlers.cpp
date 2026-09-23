@@ -268,12 +268,12 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
     }
     if (_nickname[0] == '#' || _nickname[0] == '&')
     {
-        sendServerReply(fd, 401, "Error: INVITE Invalid Nickname !");
+        sendServerReply(fd, 401, "Error: INVITE Invalid Nickname: " + _nickname);
         return ;
     }
     if (_channel[0] != '#' && _channel[0] != '&')
     {
-        sendServerReply(fd, 403, "Error: INVITE No such a channel !");
+        sendServerReply(fd, 403, "Error: INVITE No such a channel: " + _channel);
         return ;
     }
     int user_fd = -1;
@@ -284,7 +284,7 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
     }
     if (user_fd == -1)
     {
-        sendServerReply(fd, 401, "Error: INVITE No Such a nickname !");
+        sendServerReply(fd, 401, "Error: INVITE No Such a nickname: " + _nickname);
         return ;
     }
     std::string asIs = _channel;
@@ -314,7 +314,7 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
         }
         else
         {
-            sendServerReply(fd, 443, "Error: INVITE the invited client is already a member of this channel !");
+            sendServerReply(fd, 443, "Error: INVITE the invited client is already a member of this channel: " + _nickname);
             return ;
         }
     }
