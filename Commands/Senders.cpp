@@ -17,7 +17,6 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
     {
         if (it->second.nickName == target)
         {
-            std::cout << "Sending to Client: (updated output) -> " << it->second.nickName << std::endl;
             std::string sender = buildSenderPrifix(fd);
             it->second.sendBytes.append(sender + " PRIVMSG " + target + " :" + message + "\r\n");
             return ;
@@ -28,7 +27,6 @@ void Server::msgSendToNick(int fd, std::string target, std::string message)
 
 void Server::msgSendToChannel(int fd, std::string target, std::string message)
 {
-    std::cout << "Broadcasting to channel: " << target << std::endl;
     if (target.empty())
     {
         sendServerReply(fd, 461, "ERROR: PRIVMSG needs more parameters !");

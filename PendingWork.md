@@ -24,8 +24,8 @@
 
 ### Before push
 
-* Inspect channel's lowercasing accross access controls.
-* removal of cout debuggers.
+* Inspect channel's lowercasing accross access controls. (Done)
+* removal of cout debuggers. (Done)
 * removal of all comments.
 
 ### To test now: (for channel case insensetive fix)

@@ -70,7 +70,7 @@ void Server::validateNick(int fd, std::string arg)
     }
     if (arg[0] == '#' || arg[0] == '&')
     {
-        sendServerReply(fd, 999, "Error: Can't start your nickname with '#', only channels do !");
+        sendServerReply(fd, 999, "Error: Can't start your nickname with '#'/'&', only channels do !");
         return ;
     }
     if (!nickRegex(arg))

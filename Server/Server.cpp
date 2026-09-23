@@ -18,24 +18,24 @@ void Server::setupSocket(int port)
 {
     this->listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd == -1)
-        throw std::runtime_error("Error: Cannot Create Socket");
+        throw std::runtime_error("Internal Server Error: Cannot Create Socket");
 
     int opt = 1;
     if (setsockopt(this->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
-        throw std::runtime_error("Error");
+        throw std::runtime_error("Internal Server Error");
 
     struct sockaddr_in address;
     std::memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
-    // address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    address.sin_addr.s_addr = INADDR_ANY;
+    
     if (bind(this->listen_fd, (sockaddr*)&address, sizeof(address)))
-        throw std::runtime_error("Error");
+        throw std::runtime_error("Internal Server Error");
     if (listen(this->listen_fd, SOMAXCONN))
-        throw std::runtime_error("Error");
+        throw std::runtime_error("Internal Server Error");
     if (fcntl(this->listen_fd, F_SETFL, O_NONBLOCK))
-        throw std::runtime_error("Error");
+        throw std::runtime_error("Internal Server Error");
 
     struct pollfd pfd;
     pfd.fd = this->listen_fd;
@@ -121,7 +121,6 @@ void Server::acceptNclient()
     pfd_client.revents = 0;
 
     this->poll_fds.push_back(pfd_client);
-    std::cout << "New Client [fd]: " << cl.fd << " Is In..." << std::endl;
     this->clients.insert(std::make_pair(cl.fd, cl));
 }
 
@@ -147,30 +146,24 @@ bool Server::handleClientData(int fd)
             std::string command;
             stream >> command;
 
+            if (command.empty())
+                continue ;
             if (command == "PASS")
                 dispatchPass(fd, stream);
-
             else if (command == "NICK")
                 dispatchNick(fd, stream);
-
             else if (command == "USER")
                 dispatchUser(fd, stream);
-
             else if (command == "JOIN")
                 dispatchJoin(fd, stream);
-
             else if (command == "PRIVMSG")
                 dispatchPrvMsg(fd, stream);
-            
             else if (command == "KICK")
                 dispatchKick(fd, stream);
-
             else if (command == "TOPIC")
                 dispatchTopic(fd, stream);
-
             else if (command == "INVITE")
                 dispatchInvite(fd, stream);
-            
             else if (command == "MODE")
                 dispatchMode(fd, stream);
             else if (command == "PING")
@@ -184,52 +177,18 @@ bool Server::handleClientData(int fd)
             else
                 sendServerReplyarg(fd, 421, command, "Unkown Command !");
         }
-        return true; // to verify..
+        return true;
     }
     else if (bytes == 0)
-    { // client is dead.
+    {
         close(fd);
         return false;
     }
     else
-    { // bytes < 0 might be recv error or poll() already said readable.
+    {
         close(fd);
         return false;
     }
-    // no return in all control flows, no error in compilation as well..weird?
-}
-
-bool Server::needAnArg(char sign, char flag)
-{
-    if (flag == 'i' && (sign == '-' || sign == '+'))
-        return false;
-
-    else if (flag == 't' && (sign == '-' || sign == '+'))
-        return false;
-
-    else if (flag == 'l' && sign == '-')
-        return false;
-
-    else if (flag == 'l' && sign == '+')
-        return true;
-
-    else if (flag == 'k' && (sign == '-' || sign == '+'))
-        return true;
-
-    else if (flag == 'o' && (sign == '-' || sign == '+'))
-        return true;
-
-    return false;
-}
-
-bool Server::getTheArg(std::vector<std::string>& argLeft, size_t& index, std::string& consumedArg)
-{
-    if (index >= argLeft.size()) // the case of consumed arg while still there is a flag [+ok Someone, ok gets someone, k needs an arg while index match the size of the vector]
-        return false;
-    consumedArg = argLeft[index];
-    std::cout << "Arg consumed: " << consumedArg << std::endl;
-    index++;
-    return true;
 }
 
 void Server::cleanUp()
@@ -237,5 +196,4 @@ void Server::cleanUp()
     close(this->listen_fd);
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
         close (it->first);
-    std::cout << "\nircserv: Cleanup..." << std::endl;
 }

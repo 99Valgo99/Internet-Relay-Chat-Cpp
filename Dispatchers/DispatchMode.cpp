@@ -1,5 +1,37 @@
 # include "../Server/Server.hpp"
 
+bool Server::needAnArg(char sign, char flag)
+{
+    if (flag == 'i' && (sign == '-' || sign == '+'))
+        return false;
+
+    else if (flag == 't' && (sign == '-' || sign == '+'))
+        return false;
+
+    else if (flag == 'l' && sign == '-')
+        return false;
+
+    else if (flag == 'l' && sign == '+')
+        return true;
+
+    else if (flag == 'k' && (sign == '-' || sign == '+'))
+        return true;
+
+    else if (flag == 'o' && (sign == '-' || sign == '+'))
+        return true;
+
+    return false;
+}
+
+bool Server::getTheArg(std::vector<std::string>& argLeft, size_t& index, std::string& consumedArg)
+{
+    if (index >= argLeft.size())
+        return false;
+    consumedArg = argLeft[index];
+    index++;
+    return true;
+}
+
 void Server::dispatchMode(int fd, std::istringstream& stream)
 {
     char sign;
@@ -7,7 +39,8 @@ void Server::dispatchMode(int fd, std::istringstream& stream)
     std::string modeStr, channelModed;
     stream >> channelModed >> modeStr;
 
-    if (!channelModed.empty() && channelModed[0] != '#')
+    if (!channelModed.empty()
+        && channelModed[0] != '#' && channelModed[0] != '&')
     {
         sendServerReply(fd, 461, "Error: MODE Needs more arguments !");
         return ;

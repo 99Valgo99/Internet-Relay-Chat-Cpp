@@ -9,8 +9,8 @@
 # include <cstdlib>
 # include <vector>
 # include <cstring>
-# include <netinet/in.h> // sockaddr_in
-# include <arpa/inet.h> // INADDR_ANY/htons
+# include <netinet/in.h>
+# include <arpa/inet.h>
 # include <map>
 # include <unistd.h>
 # include <sstream>

@@ -115,7 +115,7 @@ void Server::handlePrvMsg(int fd, std::string targets, std::string message)
             oneTarget = targets.substr(start, posComma - start);
             start = posComma + 1;
         }
-        if (!oneTarget.empty() && oneTarget[0] == '#')
+        if (!oneTarget.empty() && (oneTarget[0] == '#' || oneTarget[0] == '&'))
             msgSendToChannel(fd, oneTarget, message);
         else
             msgSendToNick(fd, oneTarget, message);
@@ -173,13 +173,12 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
     }
     else
     {
-        broadcastKick(fd, *member, channel_it->second, comment); // swap these to check the kick bug of sending msg to the kicked user...
+        broadcastKick(fd, *member, channel_it->second, comment);
         channel_it->second.removeClientsFromChannel(*member);
     }
     std::set<int>::const_iterator opMember = channel_it->second.getOperators().find(user_fd);
     if (opMember != channel_it->second.getOperators().end())
         channel_it->second.removeOperator(*opMember);
-    std::cout << listUser << " Was Kicked of Channel: " << listChannel << std::endl;
 }
 
 void Server::handleKick(int fd, std::vector<std::string> listChannel, std::vector<std::string> listUsers, std::string comment)
