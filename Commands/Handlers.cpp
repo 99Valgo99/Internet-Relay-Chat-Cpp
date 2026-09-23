@@ -350,13 +350,13 @@ void Server::operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::st
     }
     if (user_fd == -1)
     {
-        sendServerReply(fd, 401, "Error: MODE NO such a nickname !");
+        sendServerReply(fd, 401, "Error: MODE NO such a nickname: " + arg);
         return ;
     }
     std::set<int>::const_iterator member_it = _Channel.getChannelsMembers().find(user_fd);
     if (member_it == _Channel.getChannelsMembers().end())
     {
-        sendServerReply(fd, 442, "Error: MODE client is not a member of this channel !");
+        sendServerReply(fd, 442, "Error: MODE client is not a member of this channel: " + arg);
         return ;
     }
     if (toggle)
@@ -375,11 +375,12 @@ void Server::operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::st
 
 void Server::handleMode(int fd, std::string channel_, char sign, char flag, std::string arg)
 {
+    std::string originArg = channel_;
     lowerChannelName(channel_);
     std::map<std::string, Channel>::iterator channel_it = channels.find(channel_);
     if (channel_it == channels.end())
     {
-        sendServerReply(fd, 403, "Error: MODE No such a channel !");
+        sendServerReply(fd, 403, "Error: MODE No such a channel: " +  originArg);
         return ;
     }
     std::set<int>::const_iterator send_it = channel_it->second.getOperators().find(fd);
