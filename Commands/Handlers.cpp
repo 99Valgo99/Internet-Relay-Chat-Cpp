@@ -331,6 +331,8 @@ bool Server::userLimitHelper(int fd, Channel& _Channel, std::string arg)
     long value = std::strtol(arg.c_str(), &endptr, 10);
     if (*endptr != '\0'|| value < 0 || value == LONG_MAX)
         return false;
+    if (value == 0 || (size_t)value < _Channel.getChannelsMembers().size())
+        return false;
     sendModeMsg(fd, 'l', _Channel, true);
     broadcastMode(fd, 'l', _Channel, true, arg);
     _Channel.setUserLimit(value);

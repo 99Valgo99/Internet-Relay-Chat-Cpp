@@ -103,8 +103,8 @@ void Server::sendWelcome(int fd)
 
 void Server::sendChangeNick(int fd, std::string arg, std::string oldNickname)
 {
-    std::string changeMsg = oldNickname + "!" + clients[fd].userName + "@localhost " + "NICK " + arg;
-    sendServerReply(fd, 0, changeMsg);
+    std::string changeMsg = ":" + oldNickname + "!" + clients[fd].userName + "@localhost " + "NICK " + arg;
+    clients[fd].sendBytes.append(changeMsg + "\r\n");
 }
 
 void Server::sendChanneljoin(int fd, Channel& channel)
@@ -117,7 +117,7 @@ void Server::sendChanneljoin(int fd, Channel& channel)
 
 void Server::invitationMsg(int sender, int invited, std::string channelname)
 {
-    std::string invMsg = clients[sender].nickName + "!" + clients[sender].userName + "@localhost" + " INVITE " + clients[invited].nickName + " " + channelname;
+    std::string invMsg = ":" + clients[sender].nickName + "!" + clients[sender].userName + "@localhost" + " INVITE " + clients[invited].nickName + " " + channelname;
     sendServerReply(invited, 0, invMsg);
 }
 
@@ -163,12 +163,12 @@ void Server::broadcastTopic(int fd, Channel& channel)
 
 void Server::sendModeMsg(int fd, char flag, Channel& channel, bool toggle)
 {
-    std::string modeMsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " MODE " + channel.getChannelOriginalName() + " " + flag;
+    std::string modeMsg = ":" + clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " MODE " + channel.getChannelOriginalName() + " " + flag;
     if (toggle)
         modeMsg.append(": Has been activated !");
     else
         modeMsg.append(": Has been deactivated !");
-    sendServerReply(fd, 0, modeMsg);
+    clients[fd].sendBytes.append(modeMsg + "\r\n");
 }
 
 void Server::broadcastMode(int op, char flag, Channel& channel, bool toggle, std::string arg)
