@@ -170,3 +170,28 @@ void Server::sendModeMsg(int fd, char flag, Channel& channel, bool toggle)
         modeMsg.append(": Has been deactivated !");
     sendServerReply(fd, 0, modeMsg);
 }
+
+void Server::broadcastMode(int op, char flag, Channel& channel, bool toggle, std::string arg)
+{
+    std::string broadModeMsg;
+    if (toggle)
+    {
+        if (!arg.empty())
+            broadModeMsg = clients[op].nickName + "!" + clients[op].userName + "@localhost" + " MODE " + channel.getChannelOriginalName() + " " + flag + " has been activated with " + arg;
+        else
+            broadModeMsg = clients[op].nickName + "!" + clients[op].userName + "@localhost" + " MODE " + channel.getChannelOriginalName() + " " + flag + " has been activated";
+    }
+    if (!toggle)
+    {
+        if (!arg.empty())
+            broadModeMsg = clients[op].nickName + "!" + clients[op].userName + "@localhost" + " MODE " + channel.getChannelOriginalName() + " " + flag + " has been deactivated with " + arg;
+        else
+            broadModeMsg = clients[op].nickName + "!" + clients[op].userName + "@localhost" + " MODE " + channel.getChannelOriginalName() + " " + flag + " has been deactivated";
+    }
+    for (std::set<int>::const_iterator member = channel.getChannelsMembers().begin(); member != channel.getChannelsMembers().end(); ++member)
+    {
+        if (*member == op)
+            continue ;
+        sendServerReply(*member, 0, broadModeMsg);
+    }
+}

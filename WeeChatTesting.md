@@ -58,6 +58,7 @@ JOIN #general
 :xoris!xoris@localhost PRIVMSG #general :hello guys
 ```
 
+* add nicknames to user not found/no such a nickname errors;
 
 * Testing JOIN (Done)
 
@@ -65,5 +66,13 @@ JOIN #general
 
 * Testing KICK (Done)
 
-* 
+* Testing TOPIC (-1 error, malformed input)
+
+* Tetsing MODE:
+
+-> t flag (Done)
+-> k flag (Done)
+-> i flag (Done)
+-> l flag (Done)
+-> o flag (Done)
 

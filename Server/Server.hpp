@@ -61,17 +61,18 @@ class Server {
         std::string buildSenderPrifix(int fd);
         bool alreadyJoined(int fd, Channel& Channel);
         void broadcastTopic(int fd, Channel& channel);
-        void sendServerReplyarg(int fd, int code, std::string arg, std::string message);
         void sendChanneljoin(int fd, Channel& channel);
         void broadcastJoin(int joined, Channel& channel);
         void broadcastExit(int clientLeft, Channel& channel);
         void sendServerReply(int fd, int code, std::string message);
+        void sendModeMsg(int fd, char flag, Channel& channel, bool toggle);
         void msgSendToNick(int fd, std::string target, std::string message);
         void invitationMsg(int sender, int invited, std::string channelname);
         void sendChangeNick(int fd, std::string arg, std::string oldNickname);
         void msgSendToChannel(int fd, std::string target, std::string message);
-        void sendModeMsg(int fd, char flag, Channel& channel, bool toggle);
+        void sendServerReplyarg(int fd, int code, std::string arg, std::string message);
         void broadcastKick(int kicker, int kicked, Channel& channel, std::string comment);
+        void broadcastMode(int op, char flag, Channel& channel, bool toggle, std::string arg);
         
         // mode helpers
         bool needAnArg(char sign, char flag);

@@ -49,11 +49,6 @@ void Server::handleJoin(int fd, std::string nameChannel, std::string key)
     std::map<std::string, Channel>::iterator it = channels.find(nameChannel);
     if (it == channels.end())
     {
-        if (!key.empty())
-        {
-            sendServerReply(fd, 999, "Error: Malformed JOIN argument, to set a key for a channel, use MODE #example +k");
-            return ;
-        }
         if (nameChannel.size() > 50)
         {
             sendServerReply(fd, 999, "Error: Channel's name does not comply with the server's rules !");
@@ -137,7 +132,7 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
     }
     if (listChannel[0] != '#' && listChannel[0] != '&')
     {
-        sendServerReply(fd, -1, "Error: KICK malformed channel's name !");
+        sendServerReply(fd, 461, "Error: KICK malformed channel's name !");
         return ;
     }
     if (listChannel.empty() || listUser.empty())
@@ -337,6 +332,7 @@ bool Server::userLimitHelper(int fd, Channel& _Channel, std::string arg)
     if (*endptr != '\0'|| value < 0 || value == LONG_MAX)
         return false;
     sendModeMsg(fd, 'l', _Channel, true);
+    broadcastMode(fd, 'l', _Channel, true, arg);
     _Channel.setUserLimit(value);
     return true;
 }
@@ -366,11 +362,13 @@ void Server::operatorModeHelper(int fd, Channel& _Channel, bool& toggle, std::st
     if (toggle)
     {
         sendModeMsg(fd, 'o', _Channel, toggle);
+        broadcastMode(fd, 'o', _Channel, toggle, arg);
         _Channel.addOperators(*member_it);
     }
     else
     {
         sendModeMsg(fd, 'o', _Channel, toggle);
+        broadcastMode(fd, 'o', _Channel, toggle, arg);
         _Channel.removeOperator(*member_it);
     }
 }
@@ -398,16 +396,19 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
         if (flag == 'i')
         {
             sendModeMsg(fd, flag, channel_it->second, toggle);
+            broadcastMode(fd, flag, channel_it->second, toggle, arg);
             channel_it->second.toggleInvite(toggle);
         }
         else if (flag == 't')
         {
             sendModeMsg(fd, flag, channel_it->second, toggle);
+            broadcastMode(fd, flag, channel_it->second, toggle, arg);
             channel_it->second.toggleTopic(toggle);
         }
         if (flag == 'l' && !toggle)
         {
             sendModeMsg(fd, flag, channel_it->second, toggle);
+            broadcastMode(fd, flag, channel_it->second, toggle, arg);
             channel_it->second.setUserLimit(-1);
         }
     }
@@ -427,11 +428,13 @@ void Server::handleMode(int fd, std::string channel_, char sign, char flag, std:
             if (!toggle)
             {
                 sendModeMsg(fd, flag, channel_it->second, toggle);
+                broadcastMode(fd, flag, channel_it->second, toggle, arg);
                 channel_it->second.setChannelPassword("");
             }
             else
             {
                 sendModeMsg(fd, flag, channel_it->second, toggle);
+                broadcastMode(fd, flag, channel_it->second, toggle, arg);
                 channel_it->second.setChannelPassword(arg);
             }
         }
