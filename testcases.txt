@@ -1,8 +1,0 @@
-Error Codes tests:
-
-USER   462 ERR_ALREADYREGISTRED; should we check this one ?
-JOIN   403 ERR_NOSUCHCHANNEL; we create one if it does not exist.
-TOPIC:        332 RPL_TOPIC / 331 RPL_NOTOPIC (view mode); how this works?
-Registration: 001 RPL_WELCOME, 002 RPL_YOURHOST, 003 RPL_CREATED, 004 RPL_MYINFO
-JOIN:         332 RPL_TOPIC / 331 RPL_NOTOPIC, 353 RPL_NAMREPLY (simplified), 366 RPL_ENDOFNAMES
-these as well
