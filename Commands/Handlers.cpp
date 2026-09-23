@@ -140,11 +140,12 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
         sendServerReply(fd, 461, "Error: KICK needs more parameters !");
         return ;
     }
+    std::string originArg = listChannel;
     lowerChannelName(listChannel);
     std::map<std::string, Channel>::iterator channel_it = channels.find(listChannel);
     if (channel_it == channels.end())
     {
-        sendServerReply(fd, 403, "Error: KICK No such a channel !");
+        sendServerReply(fd, 403, "Error: KICK No such a channel: " + originArg);
         return ;
     }
     std::set<int>::const_iterator isOp = channel_it->second.getOperators().find(fd);
@@ -161,20 +162,19 @@ void Server::kickOneClient(int fd, std::string listChannel, std::string listUser
     }
     if (user_fd == -1)
     {
-        sendServerReply(fd, 401, "Error: KICK Nickname does not exist !");
+        sendServerReply(fd, 401, "Error: KICK Nickname does not exist: " + listUser);
         return ;
     }
     std::set<int>::const_iterator member = channel_it->second.getChannelsMembers().find(user_fd);
     if (member == channel_it->second.getChannelsMembers().end())
     {
-        sendServerReply(fd, 441, "Error: KICK User not in channel !");
+        sendServerReply(fd, 441, "Error: KICK User not in channel: " + listUser);
         return ;
     }
     else
     {
         broadcastKick(fd, *member, channel_it->second, comment); // swap these to check the kick bug of sending msg to the kicked user...
         channel_it->second.removeClientsFromChannel(*member);
-        // broadcast the kicking here...
     }
     std::set<int>::const_iterator opMember = channel_it->second.getOperators().find(user_fd);
     if (opMember != channel_it->second.getOperators().end())
