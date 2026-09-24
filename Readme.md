@@ -277,3 +277,8 @@ To bridge C-style OS signals with an object-orented C++ class, we must use **Sta
 * **Private Access:** A ``static`` member function has full access to ``privae`` static variables of its class, even though external code cannot touch them directly.
 
 * Regular functions & statics: regular non-static functions can read/write static variables, but cannot be used as OS signal handlers because they require an object-bound ``this`` pointer.
+
+***
+### Design & Structure of the project
+![Logo](Img/diagram_irc.png)
+***
