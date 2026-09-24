@@ -303,6 +303,15 @@ void Server::handleInvite(int fd, std::string _nickname, std::string _channel)
             sendServerReply(fd, 442, "Error: INVITE Inviter is not a member of this channel !");
             return ;
         }
+        if (it->second.getInviteToggle())
+        {
+            std::set<int>::const_iterator isOp = it->second.getOperators().find(fd);
+            if (isOp == it->second.getOperators().end())
+            {
+                sendServerReply(fd, 482, "Error: INVITE Inviter must be an operator !");
+                return ;
+            }
+        }
         std::set<int>::const_iterator member = it->second.getChannelsMembers().find(user_fd);
         if (member == it->second.getChannelsMembers().end())
         {
