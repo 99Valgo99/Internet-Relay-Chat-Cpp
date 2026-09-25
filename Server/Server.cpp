@@ -117,8 +117,8 @@ void Server::acceptNclient()
     }
     if (fcntl(cl.fd, F_SETFL, O_NONBLOCK) == -1)
     {
-        throw std::runtime_error("Internal Server Error");
         close(cl.fd);
+        throw std::runtime_error("Internal Server Error");
     }
     struct pollfd pfd_client;
     pfd_client.fd = cl.fd;
