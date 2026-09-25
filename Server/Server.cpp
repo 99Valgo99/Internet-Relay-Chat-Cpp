@@ -115,6 +115,11 @@ void Server::acceptNclient()
         std::cerr << "Internal Server Error: accept() failed !" << std::endl;
         return ;
     }
+    if (fcntl(cl.fd, F_SETFL, O_NONBLOCK) == -1)
+    {
+        throw std::runtime_error("Internal Server Error");
+        close(cl.fd);
+    }
     struct pollfd pfd_client;
     pfd_client.fd = cl.fd;
     pfd_client.events = POLLIN;
