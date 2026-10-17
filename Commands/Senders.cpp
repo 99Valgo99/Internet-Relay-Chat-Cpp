@@ -107,6 +107,8 @@ void Server::sendChangeNick(int fd, std::string arg, std::string oldNickname)
 
 void Server::sendChanneljoin(int fd, Channel& channel)
 {
+    clients[fd].sendBytes.append(":" + clients[fd].nickName + "!" + clients[fd].userName
+                             + "@localhost JOIN " + channel.getChannelOriginalName() + "\r\n");
     if (channel.getTopic().empty())
         sendServerReplyarg(fd, 331, channel.getChannelOriginalName(), "No topic is set for this channel");
     else
@@ -115,48 +117,70 @@ void Server::sendChanneljoin(int fd, Channel& channel)
 
 void Server::invitationMsg(int sender, int invited, std::string channelname)
 {
-    std::string invMsg = ":" + clients[sender].nickName + "!" + clients[sender].userName + "@localhost" + " INVITE " + clients[invited].nickName + " " + channelname;
-    sendServerReply(invited, 0, invMsg);
+    std::map<int, Client>::iterator target = clients.find(invited);
+    if (target == clients.end())
+        return ;
+    target->second.sendBytes.append(buildSenderPrifix(sender) + " INVITE " + target->second.nickName + " " + channelname + "\r\n");
 }
 
 void Server::broadcastJoin(int joined, Channel& channel)
 {
-    std::string joinMsg = clients[joined].nickName + "!" + clients[joined].userName + "@localhost" + " JOIN " + channel.getChannelOriginalName();
+    std::string joinMsg = buildSenderPrifix(joined) + " JOIN " + channel.getChannelOriginalName() + "\r\n";
     
     for (std::set<int>::iterator members = channel.getChannelsMembers().begin(); members != channel.getChannelsMembers().end(); ++members)
     {
         if (*members == joined)
             continue;
-        sendServerReply(*members, 0, joinMsg);
+        std::map<int, Client>::iterator target = clients.find(*members);
+        if (target == clients.end())
+            continue ;
+        target->second.sendBytes.append(joinMsg);
     }
 }
 
 void Server::broadcastExit(int clientLeft, Channel& channel)
 {
+    std::string exitMsg = buildSenderPrifix(clientLeft) + " PART " + channel.getChannelOriginalName() + "\r\n";
+
     for (std::set<int>::const_iterator members = channel.getChannelsMembers().begin(); members != channel.getChannelsMembers().end(); ++members)
     {
         if (*members == clientLeft)
             continue ;
-        std::string exitMsg = clients[clientLeft].nickName + "!" + clients[clientLeft].userName + "@localhost" + " JOIN 0 " + channel.getChannelOriginalName();
-        sendServerReply(*members, 0, exitMsg);
+        std::map<int, Client>::iterator target = clients.find(*members);
+        if (target == clients.end())
+            continue ;
+        target->second.sendBytes.append(exitMsg);
     }
 }
 
 void Server::broadcastKick(int kicker, int kicked, Channel& channel, std::string comment)
 {
+
+    std::string kickMsg = buildSenderPrifix(kicker) + " KICK " + channel.getChannelOriginalName() + "\r\n";
+    if (!comment.empty())
+        kickMsg.append(" :" + comment);
+    kickMsg.append("\r\n");
+    
     for (std::set<int>::iterator member = channel.getChannelsMembers().begin(); member != channel.getChannelsMembers().end(); ++member)
     {
-        std::string kickMsg = clients[kicker].nickName + "!" + clients[kicker].userName + "@localhost" + " KICK " + channel.getChannelOriginalName() + " " + clients[kicked].nickName;
-        if (!comment.empty())
-            kickMsg.append(" :" + comment);
-        sendServerReply(*member, 0, kickMsg);
+        std::map<int, Client>::iterator target = clients.find(*member);
+        if (target == clients.end())
+            continue ;
+        target->second.sendBytes.append(kickMsg);
     }
 }
 
 void Server::broadcastTopic(int fd, Channel& channel)
 {
-    std::string topicmsg = clients[fd].nickName + "!" + clients[fd].userName + "@localhost" + " TOPIC " + channel.getChannelOriginalName() + " :" + channel.getTopic();
-    sendServerReply(fd, 0, topicmsg);
+    std::string topicMsg = buildSenderPrifix(fd) + " TOPIC " + channel.getChannelOriginalName() + " :" + channel.getTopic() + "\r\n";
+
+    for (std::set<int>::const_iterator member = channel.getChannelsMembers().begin(); member != channel.getChannelsMembers().end(); ++member)
+    {
+        std::map<int, Client>::iterator target = clients.find(*member);
+        if (target == clients.end())
+            continue ;
+        target->second.sendBytes.append(topicMsg);
+    }
 }
 
 void Server::sendModeMsg(int fd, char flag, Channel& channel, bool toggle)

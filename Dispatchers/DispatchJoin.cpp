@@ -57,7 +57,7 @@ void Server::dispatchJoin(int fd, std::istringstream& stream)
             }
         }
         getOneChannel = channelname.substr(start, posComma - start);
-        if (key_index > keyholder.size())
+        if (key_index >= keyholder.size())
             handleJoin(fd, getOneChannel, emptyKey);
         else
             handleJoin(fd, getOneChannel, keyholder[key_index]);
