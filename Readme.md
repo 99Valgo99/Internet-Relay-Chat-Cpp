@@ -103,3 +103,7 @@ All the code was written by me, and I tested and can explain every part of it.
 ## Data Flow & Exchange
 
 ![Logo](Img/Flow_&_Exchange.png)
+
+## Design Structure of The Project
+
+![Logo](Img/diagram_irc.png)
