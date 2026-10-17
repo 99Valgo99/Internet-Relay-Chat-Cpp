@@ -1,0 +1,12 @@
+TODO Fixes
+==========
+
+-> Fix the error regex for:
+- Passowrd mismatch
+- Need password before NICK
+- Client hasn't registrated yet.
+
+After re test using WeeChat with wrong password to connect to the irc
+----------------------------------------------------------------------
+
+-> Check why msgs dont land on WeeChat user client from other PRIVMSG users, even in channel message broadcasting.

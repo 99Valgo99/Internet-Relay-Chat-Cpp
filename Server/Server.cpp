@@ -21,7 +21,7 @@ void Server::setupSocket(int port)
         throw std::runtime_error("Internal Server Error: Cannot Create Socket");
 
     int opt = 1;
-    if (setsockopt(this->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) // to check
+    if (setsockopt(this->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
         throw std::runtime_error("Internal Server Error");
 
     struct sockaddr_in address;

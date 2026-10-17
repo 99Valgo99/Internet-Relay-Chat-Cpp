@@ -60,7 +60,7 @@ void Server::validateNick(int fd, std::string arg)
 {
     if (!clients[fd].validPass)
     {
-        sendServerReply(fd, 451, "Erro: Need a password before using NICK !");
+        sendServerReply(fd, 451, "Error: Need a password before using NICK !");
         return ;
     }
     if (arg.empty())

@@ -34,7 +34,7 @@ Other rules: `make clean`, `make fclean`, `make re`.
 
 **Test**
 
-With any IRC client, connect to the server's host and port and provide the password. With `nc`:
+Connect to the server's host and port and provide the password. With `nc`:
 ```
 nc -C 127.0.0.1 <port>
 PASS <password>
@@ -66,7 +66,7 @@ Basic commands
 |---     |      ---|
 | Join a channel (with key) | `/join #chan [key]` |
 | Private message | `/msg bob hello` |
-| Leave / quit | `/part`, `/quit` |
+...
 -----------------------------------------------------
 
 Operator commands
@@ -80,8 +80,7 @@ Operator commands
 | Topic restricted to ops | `/mode #chan +t` / `-t` |
 | Channel key | `/mode #chan +k secret` / `-k` |
 | Operator privilege | `/mode #chan +o bob` / `-o bob` (or `/op bob`) |
-| User limit | `/mode #chan +l 10` / `-l` |
-------------------------------------------------------------------------
+...------------------------------------------------------------------------
 
 ## Resources
 
