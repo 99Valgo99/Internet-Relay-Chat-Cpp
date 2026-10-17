@@ -29,7 +29,7 @@ bool Server::alreadyJoined(int fd, Channel& Channel)
 void Server::lowerChannelName(std::string& nameChannel)
 {
     for (size_t i = 0; i < nameChannel.size(); i++)
-        nameChannel[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(nameChannel[i])));
+        nameChannel[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(nameChannel[i]))); // TOCHECK
 }
 
 void Server::handleJoin(int fd, std::string nameChannel, std::string key)

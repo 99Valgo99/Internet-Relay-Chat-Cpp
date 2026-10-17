@@ -21,7 +21,7 @@ void Server::setupSocket(int port)
         throw std::runtime_error("Internal Server Error: Cannot Create Socket");
 
     int opt = 1;
-    if (setsockopt(this->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+    if (setsockopt(this->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) // to check
         throw std::runtime_error("Internal Server Error");
 
     struct sockaddr_in address;
@@ -171,7 +171,7 @@ bool Server::handleClientData(int fd)
                 dispatchInvite(fd, stream);
             else if (command == "MODE")
                 dispatchMode(fd, stream);
-            else if (command == "PING")
+            else if (command == "PING") // TO REMOVE
             {
                 std::string token;
                 std::getline(stream, token);
